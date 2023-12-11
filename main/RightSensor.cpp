@@ -14,9 +14,6 @@ void RightSensor::readDuration(){
 
 void RightSensor::calculateDistance(){
   UltrasonicSensor::calculateDistance();
-  Serial.print("Right Distance: ");
-  Serial.print(distance);
-  Serial.println(" cm");
 }
 
 double RightSensor::getDistance()const{

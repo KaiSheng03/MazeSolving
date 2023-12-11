@@ -18,7 +18,7 @@ int Motor::getSpeed()const{
   return speed;
 }
 
-void Motor::setSpeed(int s)const{
+void Motor::setSpeed(int s){
   speed = s;
 }
 
