@@ -43,10 +43,12 @@ bool leftAllowed;
 
 int row = 0;
 int column = 0;
+ 
+const int mazeRow = 12;
+const int mazeColumn = 12;
 
-int mazeRow = 12;
-int mazeColumn = 12;
+Cell maze[mazeRow][mazeColumn];
 
-Cell** maze = new Cell*[mazeRow];
+static int count = 0;
 
 #endif

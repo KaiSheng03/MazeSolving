@@ -7,7 +7,6 @@
 #include "Initialization.h"
 #include "TimedAction.h"
 
-
 TimedAction taskFrontSensor = TimedAction(1, funcFrontSensor);
 TimedAction taskLeftSensor = TimedAction(1, funcLeftSensor);
 TimedAction taskRightSensor = TimedAction(1, funcRightSensor);
@@ -17,34 +16,36 @@ TimedAction taskLeft = TimedAction(1, funcLeft);
 TimedAction taskRight = TimedAction(1, funcRight);
 //TimedAction taskBackward = TimedAction(1000, funcBackward);
 
-TimedAction taskRobotState = TimedAction(1000, funcRobotState);
-
+TimedAction taskRobotState = TimedAction(1, funcRobotState);
 
 void setup() {
-  for(int i=0; i<mazeRow; i++){
-    maze[i] = new Cell[mazeColumn];
-  }
   leftMotor.setup();
   rightMotor.setup();
   frontsensor.setup();
   leftsensor.setup();
   rightsensor.setup();
-  Serial.begin(9600);
+  Serial.begin(115200);
 }
 
+unsigned long startTime = 0;
+unsigned long startTime2 = 0;
+
 void loop(){ 
+
   taskRobotState.check();
-  //taskFrontSensor.check();
-  //taskLeftSensor.check();
-  //taskRightSensor.check();
-  //taskForward.check();
-  //taskLeft.check();
-  //taskRight.check();
+  taskFrontSensor.check();
+  taskLeftSensor.check();
+  taskRightSensor.check();
+  taskForward.check();
+  taskLeft.check();
+  taskRight.check();
+
   //taskBackward.check();
 
 }
 
 void funcRobotState(){
+  unsigned long currentTime = millis();
   switch(motionIndex){
     case 0:
       robotState = forwardState;
@@ -52,10 +53,16 @@ void funcRobotState(){
       break;
 
     case 1: // Drive state
-      Serial.println(motionIndex);
       if(robotState == forwardState){
         motion.forward();
         row++;
+        Serial.println(row);
+        if(row>=mazeRow){
+          motion.stop();
+          robotState = rightState;
+          motionIndex = 1;
+          break;
+        }
         maze[row][column].setCaller(row-1, column);
         maze[row][column].setCoordinate(row, column);
         maze[row][column].markVisited();
@@ -84,11 +91,13 @@ void funcRobotState(){
         maze[row][column].setCoordinate(row, column);
         maze[row][column].markVisited();
       }
-      motionIndex = 2;
+      if(currentTime - startTime >= 6000){
+        motionIndex = 2;
+        startTime = currentTime;
+      }
       break;
-    
+
     case 2:
-      Serial.println(motionIndex);
       motion.stop();
       if(robotState == forwardState){
         if(forwardClear && !maze[row+1][column].getVisited()){
@@ -108,7 +117,6 @@ void funcRobotState(){
       }
 
       else if(robotState == rightState){
-        Serial.println(robotState);
         if(leftClear && !maze[row+1][column].getVisited()){
           motion.left();
           robotState = forwardState;
@@ -157,7 +165,11 @@ void funcRobotState(){
           robotState = leftState; 
         }
       }
-      motionIndex = 1;
+      if(currentTime - startTime >= 6000){
+        motionIndex = 1;
+        startTime = currentTime;
+        Serial.println("NOW");
+      }
       break;
 
     case 3: // Called when the robot return back to its caller cell
@@ -221,6 +233,8 @@ void funcRobotState(){
       break;
   }
 }
+
+
 
 void funcFrontSensor(){
   frontsensor.readDuration();
