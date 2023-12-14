@@ -1,6 +1,8 @@
 #ifndef CELL_H
 #define CELL_H
 
+#include "Arduino.h"
+
 class Cell{
   private:
     int row;
@@ -23,6 +25,7 @@ class Cell{
     void markUseless();
     bool getVisited() const;
     bool getUseless() const;
+    void printCoordinate() const;
 };
 
 #endif

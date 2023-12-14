@@ -53,3 +53,10 @@ bool Cell::getVisited() const{
 bool Cell::getUseless() const{
   return useless;
 }
+
+void Cell::printCoordinate() const{
+  Serial.print("Row: ");
+  Serial.print(row);
+  Serial.print(" Column: ");
+  Serial.println(column);
+}
