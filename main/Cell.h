@@ -21,6 +21,7 @@ class Cell{
     void setCaller(int, int);
     Cell getCaller() const;
     Cell operator-(Cell&);
+    bool operator==(const Cell&);
     void markVisited();
     void markUseless();
     bool getVisited() const;

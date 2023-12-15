@@ -38,6 +38,15 @@ Cell Cell::operator-(Cell& cell){
   return Cell(row-cell.row, column-cell.column);
 }
 
+bool Cell::operator==(const Cell& cell){
+  if(row==cell.row && column==cell.column){
+    return true;
+  }
+  else{
+    return false;
+  }
+}
+
 void Cell::markVisited(){
   visited = true;
 }

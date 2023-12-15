@@ -13,6 +13,9 @@ void funcBackward();
 void funcRobotState();
 void setMaze(const Cell&);
 
+Cell& differenceForPossible(Cell&, Cell&);
+Cell& differenceForPossible(Cell&, Cell&, Cell&);
+
 // (Speed, in1, in2, en1_2)
 Motor leftMotor(255, 2, 3, 6);
 Motor rightMotor(255, 4, 5, 9);
@@ -50,19 +53,35 @@ bool needToRight;
 bool needToLeft;
 bool needToBack;
 
-int robotMode;
+bool frontPossibleFlag;
+bool leftPossibleFlag;
+bool rightPossibleFlag;
+
+int robotMode = 0;
 const int leftMode = 1;
 const int rightMode = 2;
 
 int row = 0;
 int column = 0;
- 
+
+int possibleCellCount = 0;
+int differenceRow;
+int differenceColumn;
+
 const int mazeRow = 12;
 const int mazeColumn = 12;
 
 Cell maze[mazeRow][mazeColumn];
-Cell target;
+Cell target[4];
+Cell frontPossible;
+Cell leftPossible;
+Cell rightPossible;
+Cell route;
 
 static int count = 0;
+int columnIncrement;
+const int leftModeColumnIncrement = 1;
+const int rightModeColumnIncrement = -1;
+int targetIndex = 0;
 
 #endif
