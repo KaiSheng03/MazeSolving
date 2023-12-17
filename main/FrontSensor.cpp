@@ -1,11 +1,10 @@
 #include "FrontSensor.h"
 
-FrontSensor::FrontSensor(int trigpin, int echopin, int ledpin)
-  : UltrasonicSensor(trigpin, echopin), ledPin(ledpin) {}
+FrontSensor::FrontSensor(int trigpin, int echopin)
+  : UltrasonicSensor(trigpin, echopin){}
 
 void FrontSensor::setup(){
   UltrasonicSensor::setup();
-  pinMode(ledPin, OUTPUT);
 }
 
 void FrontSensor::readDuration(){

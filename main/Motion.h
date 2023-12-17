@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "Motor.h"
+//#include "IMU.h"
 
 class Motion{
   public:
@@ -13,6 +14,7 @@ class Motion{
   private:
     Motor leftMotor;
     Motor rightMotor;
+    //IMU imu;
 };
 
 

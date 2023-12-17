@@ -14,7 +14,7 @@ Motor::Motor(int s, int in1, int in2, int en){
   enable1_2 = en;
 }
 
-int Motor::getSpeed()const{
+int& Motor::getSpeed(){
   return speed;
 }
 

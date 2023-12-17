@@ -1,11 +1,10 @@
 #include "RightSensor.h"
 
-RightSensor::RightSensor(int trigPin, int echoPin, int ledPin)
-  : UltrasonicSensor(trigPin, echoPin), ledPin(ledPin) {}
+RightSensor::RightSensor(int trigPin, int echoPin)
+  : UltrasonicSensor(trigPin, echoPin){}
 
 void RightSensor::setup(){
   UltrasonicSensor::setup();
-  pinMode(ledPin, OUTPUT);
 }
 
 void RightSensor::readDuration(){

@@ -8,46 +8,40 @@ void funcRightSensor();
 void funcForward();
 void funcLeft();
 void funcRight();
-void funcBackward();
 
 void funcRobotState();
 void setMaze(const Cell&);
 
 Cell& differenceForPossible(Cell&, Cell&);
-Cell& differenceForPossible(Cell&, Cell&, Cell&);
+//Cell& differenceForPossible(Cell&, Cell&, Cell&);
 
 // (Speed, in1, in2, en1_2)
 Motor leftMotor(255, 2, 3, 6);
 Motor rightMotor(255, 4, 5, 9);
+//IMU imu;
 
+//Motion motion(leftMotor, rightMotor, imu);
 Motion motion(leftMotor, rightMotor);
 
-FrontSensor frontsensor(7, A1, 11);
-LeftSensor leftsensor(8, A0, 12);
-RightSensor rightsensor(10, A2, 13);
+FrontSensor frontsensor(7, A1);
+LeftSensor leftsensor(8, A0);
+RightSensor rightsensor(10, A2);
 
 int robotState;
 int motionIndex = 0;
-const int turnRight = 100;
-const int turnLeft = 200;
-const int goBack = 300;
+const PROGMEM int turnLeft = 200;
+const PROGMEM int goBack = 300;
+const PROGMEM int turnRight = 100;
 
-const int forwardState = 1;
-const int rightState = 2;
-const int leftState = 3;
-const int backwardState = 4;
-const int stopState = 5;
-const int returnCallerState = 6;
+const PROGMEM int forwardState = 1;
+const PROGMEM int rightState = 2;
+const PROGMEM int leftState = 3;
+const PROGMEM int backwardState = 4;
+const PROGMEM int returnCallerState = 6;
 
 bool forwardClear;
 bool rightClear;
 bool leftClear;
-bool backwardClear;
-bool stopAllowed;
-
-bool forwardAllowed;
-bool rightAllowed;
-bool leftAllowed;
 
 bool needToRight;
 bool needToLeft;
@@ -58,8 +52,8 @@ bool leftPossibleFlag;
 bool rightPossibleFlag;
 
 int robotMode = 0;
-const int leftMode = 1;
-const int rightMode = 2;
+const PROGMEM int leftMode = 1;
+const PROGMEM int rightMode = 2;
 
 int row = 0;
 int column = 0;
@@ -68,8 +62,8 @@ int possibleCellCount = 0;
 int differenceRow;
 int differenceColumn;
 
-const int mazeRow = 12;
-const int mazeColumn = 12;
+const PROGMEM int mazeRow = 12;
+const PROGMEM int mazeColumn = 12;
 
 Cell maze[mazeRow][mazeColumn];
 Cell target[4];
@@ -78,10 +72,9 @@ Cell leftPossible;
 Cell rightPossible;
 Cell route;
 
-static int count = 0;
 int columnIncrement;
-const int leftModeColumnIncrement = 1;
-const int rightModeColumnIncrement = -1;
+const PROGMEM int leftModeColumnIncrement = 1;
+const PROGMEM int rightModeColumnIncrement = -1;
 int targetIndex = 0;
 
 #endif

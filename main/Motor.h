@@ -6,7 +6,7 @@ class Motor{  //to declare pin number of one motor driver on Arduino board
   public:
     Motor();
     Motor(int, int, int, int);
-    int getSpeed()const;
+    int& getSpeed();
     void setSpeed(int);
     int getInput1()const;
     int getInput2()const;

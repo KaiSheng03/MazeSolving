@@ -7,10 +7,6 @@
 #include "Initialization.h"
 #include "TimedAction.h"
 
-// [0,0] -> [1,0] -> [2,0] -> [3,0] -> [4,0] -> [5,0] -> [6,0] -> [7,0] -> [7,1] -> [7,2] -> [7,3] -> [7,4] -> [7,5] -> [7,6] -> [7,7]
-//                         -> [3,1] -> [4,1] -> [5,1] -> [6,1] -> [7,1] -> 
-//                                          
-
 TimedAction taskFrontSensor = TimedAction(1, funcFrontSensor);
 TimedAction taskLeftSensor = TimedAction(1, funcLeftSensor);
 TimedAction taskRightSensor = TimedAction(1, funcRightSensor);
@@ -18,11 +14,11 @@ TimedAction taskRightSensor = TimedAction(1, funcRightSensor);
 TimedAction taskForward = TimedAction(1, funcForward);
 TimedAction taskLeft = TimedAction(1, funcLeft);
 TimedAction taskRight = TimedAction(1, funcRight);
-//TimedAction taskBackward = TimedAction(1000, funcBackward);
 
 TimedAction taskRobotState = TimedAction(2000, funcRobotState);
 
 void setup() {
+  //imu.setup();
   leftMotor.setup();
   rightMotor.setup();
   frontsensor.setup();
@@ -43,7 +39,6 @@ void setup() {
 }
 
 unsigned long startTime = 0;
-unsigned long startTime2 = 0;
 
 void loop(){ 
   taskRobotState.check();
@@ -53,7 +48,6 @@ void loop(){
   taskForward.check();
   taskLeft.check();
   taskRight.check();
-  //taskBackward.check();
 }
 
 void funcRobotState(){
@@ -512,7 +506,7 @@ void funcRobotState(){
         Serial.println("NOW");
       }
       break;
-  }
+  }  
 }
 
 void setMaze(const Cell & inputCell){
@@ -546,6 +540,7 @@ Cell& differenceForPossible(Cell& inputCell, Cell& inputCell2){
   }
 }
 
+/*
 Cell& differenceForPossible(Cell& inputCell, Cell& inputCell2, Cell& inputCell3){
   bool routeFound = false;
   int targetIndex = 0;
@@ -580,7 +575,7 @@ Cell& differenceForPossible(Cell& inputCell, Cell& inputCell2, Cell& inputCell3)
     return inputCell3;
   }
 }
-
+*/
 void funcFrontSensor(){
   frontsensor.readDuration();
   frontsensor.calculateDistance();

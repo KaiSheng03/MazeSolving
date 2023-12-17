@@ -2,13 +2,10 @@
 
 class FrontSensor : public UltrasonicSensor{
   public:
-    FrontSensor(int, int, int);
+    FrontSensor(int, int);
     void setup();
     void readDuration();
     void calculateDistance();
     double getDistance()const;
     bool checkObstacle() const;
-
-  private:
-    const int ledPin;
 };
