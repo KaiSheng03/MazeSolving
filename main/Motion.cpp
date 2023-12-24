@@ -1,17 +1,12 @@
 #include "Motion.h"
 
-Motion::Motion(Motor lm, Motor rm){
+Motion::Motion(Motor lm, Motor rm, IMU imu_input){
   leftMotor = lm;
   rightMotor = rm;
-  //imu = imu_input;
+  imu = imu_input;
 }
 
 void Motion::forward(){
-  //imu.setTarget(0);
-
-  //imu.updateAngles();
-  //imu.calculatePID();
-  //imu.calculateMotorSpeed(leftMotor.getSpeed(), rightMotor.getSpeed());
   analogWrite(leftMotor.getEnable1_2(), leftMotor.getSpeed());
   analogWrite(rightMotor.getEnable1_2(), rightMotor.getSpeed());
 
@@ -22,10 +17,10 @@ void Motion::forward(){
 }
 
 void Motion::backward(){
-  //imu.setTarget(0);
-  //imu.updateAngles();
-  //imu.calculatePID();
-  //imu.calculateMotorSpeed(leftMotor.getSpeed(), rightMotor.getSpeed());
+  imu.setTarget(0);
+  imu.updateAngles();
+  imu.calculatePID();
+  imu.calculateMotorSpeed(leftMotor.getSpeed(), rightMotor.getSpeed());
   analogWrite(leftMotor.getEnable1_2(), leftMotor.getSpeed());
   analogWrite(rightMotor.getEnable1_2(), rightMotor.getSpeed());
 
@@ -42,7 +37,7 @@ void Motion::right(){
   digitalWrite(leftMotor.getInput1(), HIGH);
   digitalWrite(leftMotor.getInput2(), LOW);
   digitalWrite(rightMotor.getInput1(), LOW);
-  digitalWrite(rightMotor.getInput2(), HIGH);
+  digitalWrite(rightMotor.getInput2(), LOW);
 }
 
 void Motion::left(){
@@ -50,7 +45,7 @@ void Motion::left(){
   analogWrite(rightMotor.getEnable1_2(), rightMotor.getSpeed());
 
   digitalWrite(leftMotor.getInput1(), LOW);
-  digitalWrite(leftMotor.getInput2(), HIGH);
+  digitalWrite(leftMotor.getInput2(), LOW);
   digitalWrite(rightMotor.getInput1(), HIGH);
   digitalWrite(rightMotor.getInput2(), LOW);
 }

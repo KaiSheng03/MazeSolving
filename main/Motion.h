@@ -1,10 +1,10 @@
 #include <Arduino.h>
 #include "Motor.h"
-//#include "IMU.h"
+#include "IMU.h"
 
 class Motion{
   public:
-    Motion(Motor, Motor);
+    Motion(Motor, Motor, IMU);
     void forward();
     void backward();
     void right();
@@ -14,7 +14,7 @@ class Motion{
   private:
     Motor leftMotor;
     Motor rightMotor;
-    //IMU imu;
+    IMU imu;
 };
 
 

@@ -15,7 +15,7 @@ TimedAction taskForward = TimedAction(1, funcForward);
 TimedAction taskLeft = TimedAction(1, funcLeft);
 TimedAction taskRight = TimedAction(1, funcRight);
 
-TimedAction taskRobotState = TimedAction(2000, funcRobotState);
+TimedAction taskRobotState = TimedAction(interval, funcRobotState);
 
 void setup() {
   //imu.setup();
@@ -24,12 +24,20 @@ void setup() {
   frontsensor.setup();
   leftsensor.setup();
   rightsensor.setup();
+  imu.setup();
 
-  target[0].setCoordinate(5, 6);
-  target[1].setCoordinate(5, 7);
-  target[2].setCoordinate(6, 6);
-  target[3].setCoordinate(6, 7);
+
+  //target[0].setCoordinate(5, 6);
+  //target[1].setCoordinate(5, 7);
+  //target[2].setCoordinate(6, 6);
+  //target[3].setCoordinate(6, 7);
   
+  target[0].setCoordinate(2, 2);
+  target[1].setCoordinate(3, 2);
+  target[2].setCoordinate(3, 3);
+  target[3].setCoordinate(2, 3);
+  
+
   for(int i=0; i<mazeRow; i++){
     for(int j=0; j<mazeColumn; j++){
       maze[i][j].setCoordinate(i, j);
@@ -91,7 +99,7 @@ void funcRobotState(){
         setMaze(maze[row][column]);
       }
 
-      if(currentTime - startTime >= 2000){
+      if(currentTime - startTime >= interval){
         if(robotMode == 0 ){
           motionIndex = 1000;
         }
@@ -114,8 +122,13 @@ void funcRobotState(){
         columnIncrement = leftModeColumnIncrement;
         Serial.println("LEFT MODE");
       }
-      if(currentTime - startTime >= 2000){
-        motionIndex = 1;
+      if(currentTime - startTime >= interval){
+        if(robotMode == 0){
+          motionIndex = 1;
+        }
+        else{
+          motionIndex = 2;
+        }
         startTime = currentTime;
       }
       break;
@@ -184,6 +197,7 @@ void funcRobotState(){
         }
         else{
           maze[row][column].markUseless();
+          needToBack = true;
         }
       }
 
@@ -248,6 +262,11 @@ void funcRobotState(){
             needToRight = true;
           }
         }
+
+        else{
+          maze[row][column].markUseless();
+          needToBack = true;
+        }
       }
 
       else if(robotState == leftState){
@@ -311,6 +330,11 @@ void funcRobotState(){
             needToRight = true;
           }
         }
+
+        else{
+          maze[row][column].markUseless();
+          needToBack = true;
+        }
       }
 
       else if(robotState == backwardState){
@@ -373,8 +397,12 @@ void funcRobotState(){
             needToRight = true;
           }
         }
+        else{
+          maze[row][column].markUseless();
+          needToBack = true;
+        }
       }
-      if(currentTime - startTime >= 2000){
+      if(currentTime - startTime >= interval){
         if(needToLeft){
           motionIndex = turnLeft;
         }
@@ -398,8 +426,8 @@ void funcRobotState(){
     case turnRight:
       Serial.println("Turn Right");
       motion.right();
-      if(currentTime - startTime >= 1500){
-        motionIndex = 2;
+      if(currentTime - startTime >= interval){
+        motionIndex = 1;
         startTime = currentTime;
       }
       break;
@@ -407,8 +435,8 @@ void funcRobotState(){
     case turnLeft:
       Serial.println("Turn Left");
       motion.left();
-      if(currentTime - startTime >= 1500){
-        motionIndex = 2;
+      if(currentTime - startTime >= interval){
+        motionIndex = 1;
         startTime = currentTime;
       }
       break;
@@ -416,7 +444,7 @@ void funcRobotState(){
     case goBack:
       Serial.println("Go Back");
       motion.backward();
-      if(currentTime - startTime >= 2000){
+      if(currentTime - startTime >= interval){
         motionIndex = 2;
         startTime = currentTime;
       }
@@ -491,7 +519,7 @@ void funcRobotState(){
           robotState = leftState;
         }
       }
-      if(currentTime - startTime >= 2000){
+      if(currentTime - startTime >= interval){
         if(needToLeft){
           motionIndex = turnLeft;
         }

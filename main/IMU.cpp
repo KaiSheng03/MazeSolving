@@ -1,9 +1,9 @@
-/*#include "IMU.h"
+#include "IMU.h"
 
 IMU::IMU():mpu(Wire){
-  Kp = 4.0;
+  Kp = 6.0;
   Ki = 0.01;
-  Kd = 1.0;
+  Kd = 2.0;
 
   error, lastError = 0;
   integral = 0;
@@ -66,4 +66,3 @@ void IMU::calculateMotorSpeed(int&leftSpeed, int&rightSpeed){
 void IMU::setTarget(int targetAngle){
   target = targetAngle;
 }
-*/
