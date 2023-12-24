@@ -13,8 +13,8 @@ void FrontSensor::readDuration(){
 
 void FrontSensor::calculateDistance(){
   UltrasonicSensor::calculateDistance();
-  Serial.print("Front Distance: ");
-  Serial.println(distance);
+  //Serial.print("Front Distance: ");
+  //Serial.println(distance);
 }
 
 double FrontSensor::getDistance()const{

@@ -23,7 +23,7 @@ IMU imu;
 Motion motion(leftMotor, rightMotor, imu);
 //Motion motion(leftMotor, rightMotor);
 
-FrontSensor frontsensor(12, A1);
+FrontSensor frontsensor(30, A1);
 LeftSensor leftsensor(13, A0);
 RightSensor rightsensor(14, A2);
 
