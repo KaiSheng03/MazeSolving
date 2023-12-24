@@ -545,6 +545,25 @@ void setMaze(const Cell & inputCell){
 }
 
 Cell& differenceForPossible(Cell& inputCell, Cell& inputCell2){
+  for(int i=0; i<4; i++){
+    int differenceRow1 = abs(target[i].getRow() - inputCell.getRow());
+    int differenceRow2 = abs(target[i].getRow() - inputCell2.getRow());
+
+    int differenceColumn1 = abs(target[i].getColumn() - inputCell.getColumn());
+    int differenceColumn2 = abs(target[i].getColumn() - inputCell2.getColumn());
+
+    int difference1 = differenceRow1 + differenceColumn1;
+    int difference2 = differenceRow2 + differenceColumn2;
+
+    if(difference1 < difference2){
+      return inputCell;
+    }
+    else if(difference2 < difference1){
+      return inputCell2;
+    }
+  }
+  return inputCell;
+  /*
   int differenceRow1 = abs(target[targetIndex].getRow() - inputCell.getRow());
   int differenceRow2 = abs(target[targetIndex].getRow() - inputCell2.getRow());
 
@@ -567,6 +586,7 @@ Cell& differenceForPossible(Cell& inputCell, Cell& inputCell2){
     }
   }
   return inputCell;
+  */
 }
 
 /*
