@@ -263,7 +263,7 @@ void funcRobotState(){
           }
         }
 
-        else{
+        else if(possibleCellCount == 0){
           maze[row][column].markUseless();
           needToBack = true;
         }
@@ -331,7 +331,7 @@ void funcRobotState(){
           }
         }
 
-        else{
+        else if(possibleCellCount == 0){
           maze[row][column].markUseless();
           needToBack = true;
         }
@@ -343,12 +343,12 @@ void funcRobotState(){
           leftPossible = maze[row][column-columnIncrement];
           possibleCellCount += 1;
         }
-        else if(forwardClear && !maze[row][column+columnIncrement].getVisited()){
+        else if(forwardClear && !maze[row-1][column].getVisited()){
           frontPossibleFlag = true;
           frontPossible = maze[row][column+columnIncrement];
           possibleCellCount += 1;
         }
-        else if(rightClear && !maze[row+1][column].getVisited()){
+        else if(rightClear && !maze[row][column+columnIncrement].getVisited()){
           rightPossibleFlag = true;
           rightPossible = maze[row+1][column];
           possibleCellCount +=1; 
@@ -409,17 +409,20 @@ void funcRobotState(){
         else if(needToRight){
           motionIndex = turnRight;
         }
+        else if(needToBack){
+          motionIndex = 3;
+        }
         else{
           motionIndex = 1;
         }
         needToLeft = false;
         needToRight = false;
+        needToBack = false;
         frontPossibleFlag = false;
         leftPossibleFlag = false;
         rightPossibleFlag = false;
         possibleCellCount = 0;
         startTime = currentTime;
-        Serial.println("NOW");
       }
       break;
 
@@ -529,9 +532,7 @@ void funcRobotState(){
         else if(needToBack){
           motionIndex = goBack;
         }
-        motionIndex = 2;
         startTime = currentTime;
-        Serial.println("NOW");
       }
       break;
   }  
@@ -544,7 +545,6 @@ void setMaze(const Cell & inputCell){
 }
 
 Cell& differenceForPossible(Cell& inputCell, Cell& inputCell2){
-  bool routeFound = false;
   int differenceRow1 = abs(target[targetIndex].getRow() - inputCell.getRow());
   int differenceRow2 = abs(target[targetIndex].getRow() - inputCell2.getRow());
 
@@ -554,7 +554,7 @@ Cell& differenceForPossible(Cell& inputCell, Cell& inputCell2){
   int difference1 = differenceRow1 + differenceColumn1;
   int difference2 = differenceRow2 + differenceColumn2;
 
-  if(targetIndex < sizeof(target)-1){
+  if(targetIndex < 3){
     if(difference1 < difference2){
       return inputCell;
     }
@@ -566,6 +566,7 @@ Cell& differenceForPossible(Cell& inputCell, Cell& inputCell2){
       return differenceForPossible(inputCell, inputCell2);
     }
   }
+  return inputCell;
 }
 
 /*

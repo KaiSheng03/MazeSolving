@@ -17,10 +17,6 @@ void Motion::forward(){
 }
 
 void Motion::backward(){
-  imu.setTarget(0);
-  imu.updateAngles();
-  imu.calculatePID();
-  imu.calculateMotorSpeed(leftMotor.getSpeed(), rightMotor.getSpeed());
   analogWrite(leftMotor.getEnable1_2(), leftMotor.getSpeed());
   analogWrite(rightMotor.getEnable1_2(), rightMotor.getSpeed());
 
