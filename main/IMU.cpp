@@ -28,16 +28,13 @@ void IMU::setup(){
 
 void IMU::updateAngles(){
   mpu.update();
-  
-  if((millis()-timer)>10){ // print data every 10ms
-    Serial.print("X : ");
-    Serial.print(mpu.getAngleX());
-    Serial.print("\tY : ");
-    Serial.print(mpu.getAngleY());
-    Serial.print("\tZ : ");
-    Serial.println(mpu.getAngleZ());
-    timer = millis();  
-  }
+  Serial.print("X : ");
+  Serial.print(mpu.getAngleX());
+  Serial.print("\tY : ");
+  Serial.print(mpu.getAngleY());
+  Serial.print("\tZ : ");
+  Serial.println(mpu.getAngleZ());
+  angleZ = mpu.getAngleZ();
 }
 
 void IMU::calculatePID(){
@@ -65,4 +62,8 @@ void IMU::calculateMotorSpeed(int&leftSpeed, int&rightSpeed){
 
 void IMU::setTarget(int targetAngle){
   target = targetAngle;
+}
+
+double IMU::getAngleZ() const{
+  return angleZ;
 }

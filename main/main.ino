@@ -4,6 +4,7 @@
 #include "LeftSensor.h"
 #include "RightSensor.h"
 #include "Cell.h"
+#include "IMU.h"
 #include "Initialization.h"
 #include "TimedAction.h"
 
@@ -11,21 +12,23 @@ TimedAction taskFrontSensor = TimedAction(1, funcFrontSensor);
 TimedAction taskLeftSensor = TimedAction(1, funcLeftSensor);
 TimedAction taskRightSensor = TimedAction(1, funcRightSensor);
 
-TimedAction taskForward = TimedAction(1, funcForward);
-TimedAction taskLeft = TimedAction(1, funcLeft);
-TimedAction taskRight = TimedAction(1, funcRight);
+//TimedAction taskForward = TimedAction(1, funcForward);
+//TimedAction taskLeft = TimedAction(1, funcLeft);
+//TimedAction taskRight = TimedAction(1, funcRight);
+
+TimedAction taskIMU = TimedAction(1, funcIMU);
 
 TimedAction taskRobotState = TimedAction(interval, funcRobotState);
 
 void setup() {
-  //imu.setup();
+  Serial.begin(115200);
+  
   leftMotor.setup();
   rightMotor.setup();
   frontsensor.setup();
   leftsensor.setup();
   rightsensor.setup();
   imu.setup();
-
 
   //target[0].setCoordinate(5, 6);
   //target[1].setCoordinate(5, 7);
@@ -43,7 +46,6 @@ void setup() {
       maze[i][j].setCoordinate(i, j);
     }
   }
-  Serial.begin(115200);
 }
 
 unsigned long startTime = 0;
@@ -53,9 +55,10 @@ void loop(){
   taskFrontSensor.check();
   taskLeftSensor.check();
   taskRightSensor.check();
-  taskForward.check();
-  taskLeft.check();
-  taskRight.check();
+  taskIMU.check();
+  //taskForward.check();
+  //taskLeft.check();
+  //taskRight.check();
 }
 
 void funcRobotState(){
@@ -67,39 +70,44 @@ void funcRobotState(){
       break;
 
     case 1: // Drive state
-      if(robotState == forwardState){
-        row++;
-        motion.forward();
-        //Serial.println("Forward State");
-        maze[row][column].setCaller(row-1, column);
-        setMaze(maze[row][column]);
-      }
+      driveForward();
+      if(currentTime - startTime >= interval){ // Time reached
+        if(robotState == forwardState){
+          row++;
+          //Serial.println("Forward State");
+          if(!maze[row][column].getVisited()){
+            maze[row][column].setCaller(row-1, column);
+            setMaze(maze[row][column]);
+          }
+        }
 
-      else if(robotState == rightState){
-        column -= columnIncrement;
-        maze[row][column].setCaller(row, column+columnIncrement);
-        //Serial.println("Right State");
-        motion.forward();
-        setMaze(maze[row][column]);
-      }
+        else if(robotState == rightState){
+          column -= columnIncrement;
+          if(!maze[row][column].getVisited()){
+            maze[row][column].setCaller(row, column+columnIncrement);
+            //Serial.println("Right State");
+            setMaze(maze[row][column]);
+          }
+        }
 
-      else if(robotState == leftState){
-        column += columnIncrement;
-        maze[row][column].setCaller(row, column-columnIncrement);
-        //Serial.println("Left State");
-        motion.forward();
-        setMaze(maze[row][column]);
-      }
+        else if(robotState == leftState){
+          column += columnIncrement;
+          if(!maze[row][column].getVisited()){
+            maze[row][column].setCaller(row, column-columnIncrement);
+            //Serial.println("Left State");
+            setMaze(maze[row][column]);
+          }
+        }
 
-      else if(robotState == backwardState){
-        row--;
-        //Serial.println("Backward State");
-        motion.forward();
-        maze[row][column].setCaller(row+1, column);
-        setMaze(maze[row][column]);
-      }
+        else if(robotState == backwardState){
+          row--;
+          //Serial.println("Backward State");
+          if(!maze[row][column].getVisited()){
+            maze[row][column].setCaller(row+1, column);
+            setMaze(maze[row][column]);
+          }
+        }
 
-      if(currentTime - startTime >= interval){
         if(robotMode == 0 ){
           motionIndex = 1000;
         }
@@ -112,17 +120,19 @@ void funcRobotState(){
 
     case 1000:
       motion.stop();
-      if(rightClear){
-        robotMode = rightMode;
-        columnIncrement = rightModeColumnIncrement;
-        Serial.println("RIGHT MODE");
-      }
-      else if(leftClear){
-        robotMode = leftMode;
-        columnIncrement = leftModeColumnIncrement;
-        Serial.println("LEFT MODE");
-      }
       if(currentTime - startTime >= interval){
+        if(rightClear){
+          robotMode = rightMode;
+          columnIncrement = rightModeColumnIncrement;
+          Serial.println("RIGHT MODE");
+        }
+
+        else if(leftClear){
+          robotMode = leftMode;
+          columnIncrement = leftModeColumnIncrement;
+          Serial.println("LEFT MODE");
+        }
+
         if(robotMode == 0){
           motionIndex = 1;
         }
@@ -134,279 +144,285 @@ void funcRobotState(){
       break;
 
     case 2: // Buffer stage for condition checking
-      targetIndex = 0;
-      motion.stop();
-      if(robotState == forwardState){
-        if(forwardClear && !maze[row+1][column].getVisited()){
-          frontPossibleFlag = true;
-          frontPossible = maze[row+1][column];
-          possibleCellCount += 1;
-        }
-        if(leftClear && !maze[row][column+columnIncrement].getVisited()){
-          leftPossibleFlag = true;
-          leftPossible = maze[row][column+columnIncrement];
-          possibleCellCount += 1;
-        }
-        if(rightClear && !maze[row][column-columnIncrement].getVisited()){
-          rightPossibleFlag = true;
-          rightPossible = maze[row][column-columnIncrement];
-          possibleCellCount +=1;
-        }
-        if(possibleCellCount>1){
-          if(frontPossibleFlag && leftPossibleFlag){
-            route = differenceForPossible(frontPossible, leftPossible);
-          }
-          else if(frontPossibleFlag && rightPossibleFlag){
-            route = differenceForPossible(frontPossible, rightPossible);
-          }
-          else if(leftPossibleFlag && rightPossibleFlag){
-            route = differenceForPossible(leftPossible, rightPossible);
-          }
-          else{
-            //route = differenceForPossible(frontPossible, leftPossible, rightPossible);
-            robotState = forwardState;
-          } 
+      funcForward(); // Check front obstacle
+      funcLeft(); // Check left obstacle
+      funcRight(); // Check right obstacle
+      motion.stop(); // Stop the robot for buffer session
+      if(currentTime - startTime >= interval){
 
-          if(route == frontPossible){
-            robotState = forwardState;
+        if(robotState == forwardState){
+          if(forwardClear && !maze[row+1][column].getVisited()){
+            frontPossibleFlag = true;
+            frontPossible = maze[row+1][column];
+            possibleCellCount += 1;
           }
-          else if(route == leftPossible){
-            robotState = leftState;
-            needToLeft = true;
+          if(leftClear && !maze[row][column+columnIncrement].getVisited()){
+            leftPossibleFlag = true;
+            leftPossible = maze[row][column+columnIncrement];
+            possibleCellCount += 1;
           }
-          else if(route == rightPossible){
-            robotState = rightState;
-            needToRight = true;
+          if(rightClear && !maze[row][column-columnIncrement].getVisited()){
+            rightPossibleFlag = true;
+            rightPossible = maze[row][column-columnIncrement];
+            possibleCellCount +=1;
           }
-          else{
-            robotState = forwardState;
-          }         
-        }
-        else if(possibleCellCount == 1){
-          if(frontPossibleFlag){
-            robotState = forwardState;
-          }
-          else if(leftPossibleFlag){
-            robotState = leftState;
-            needToLeft = true;
-          }
-          else if(rightPossibleFlag){
-            robotState = rightState;
-            needToRight = true;
-          }
-        }
-        else{
-          maze[row][column].markUseless();
-          needToBack = true;
-        }
-      }
+          if(possibleCellCount>1){
+            if(frontPossibleFlag && leftPossibleFlag){
+              route = differenceForPossible(frontPossible, leftPossible);
+            }
+            else if(frontPossibleFlag && rightPossibleFlag){
+              route = differenceForPossible(frontPossible, rightPossible);
+            }
+            else if(leftPossibleFlag && rightPossibleFlag){
+              route = differenceForPossible(leftPossible, rightPossible);
+            }
+            else{
+              //route = differenceForPossible(frontPossible, leftPossible, rightPossible);
+              robotState = forwardState;
+            } 
 
-      else if(robotState == rightState){
-        if(leftClear && !maze[row+1][column].getVisited()){
-          leftPossibleFlag = true;
-          leftPossible = maze[row+1][column];
-          possibleCellCount += 1;
-        }
-        if(forwardClear && !maze[row][column-columnIncrement].getVisited()){
-          frontPossibleFlag = true;
-          frontPossible = maze[row][column-columnIncrement];
-          possibleCellCount += 1;
-        }
-        if(rightClear && !maze[row-1][column].getVisited()){
-          rightPossibleFlag = true;
-          rightPossible = maze[row-1][column];
-          possibleCellCount +=1;
-        }
-        
-        if(possibleCellCount>1){
-          if(frontPossibleFlag && leftPossibleFlag){
-            route = differenceForPossible(frontPossible, leftPossible);
+            if(route == frontPossible){
+              robotState = forwardState;
+            }
+            else if(route == leftPossible){
+              robotState = leftState;
+              needToLeft = true;
+            }
+            else if(route == rightPossible){
+              robotState = rightState;
+              needToRight = true;
+            }
+            else{
+              robotState = forwardState;
+            }         
           }
-          else if(frontPossibleFlag && rightPossibleFlag){
-            route = differenceForPossible(frontPossible, rightPossible);
-          }
-          else if(leftPossibleFlag && rightPossibleFlag){
-            route = differenceForPossible(leftPossible, rightPossible);
+          else if(possibleCellCount == 1){
+            if(frontPossibleFlag){
+              robotState = forwardState;
+            }
+            else if(leftPossibleFlag){
+              robotState = leftState;
+              needToLeft = true;
+            }
+            else if(rightPossibleFlag){
+              robotState = rightState;
+              needToRight = true;
+            }
           }
           else{
-            //route = differenceForPossible(frontPossible, leftPossible, rightPossible);
-            robotState = rightState;
+            maze[row][column].markUseless();
+            needToBack = true;
+          }
+        }
+
+        else if(robotState == rightState){
+          if(leftClear && !maze[row+1][column].getVisited()){
+            leftPossibleFlag = true;
+            leftPossible = maze[row+1][column];
+            possibleCellCount += 1;
+          }
+          if(forwardClear && !maze[row][column-columnIncrement].getVisited()){
+            frontPossibleFlag = true;
+            frontPossible = maze[row][column-columnIncrement];
+            possibleCellCount += 1;
+          }
+          if(rightClear && !maze[row-1][column].getVisited()){
+            rightPossibleFlag = true;
+            rightPossible = maze[row-1][column];
+            possibleCellCount +=1;
+          }
+          
+          if(possibleCellCount>1){
+            if(frontPossibleFlag && leftPossibleFlag){
+              route = differenceForPossible(frontPossible, leftPossible);
+            }
+            else if(frontPossibleFlag && rightPossibleFlag){
+              route = differenceForPossible(frontPossible, rightPossible);
+            }
+            else if(leftPossibleFlag && rightPossibleFlag){
+              route = differenceForPossible(leftPossible, rightPossible);
+            }
+            else{
+              //route = differenceForPossible(frontPossible, leftPossible, rightPossible);
+              robotState = rightState;
+            }  
+
+            if(route == frontPossible){
+              robotState = rightState;
+            }
+            else if(route == leftPossible){
+              robotState = forwardState;
+              needToLeft = true;
+            }
+            else if(route == rightPossible){
+              robotState = backwardState;
+              needToRight = true;
+            }
+            else{
+              robotState = rightState;
+            }        
+          }
+
+          else if(possibleCellCount == 1){
+            if(frontPossibleFlag){
+              robotState = rightState;
+            }
+            else if(leftPossibleFlag){
+              robotState = forwardState;
+              needToLeft = true;
+            }
+            else if(rightPossibleFlag){
+              robotState = backwardState;
+              needToRight = true;
+            }
+          }
+
+          else if(possibleCellCount == 0){
+            maze[row][column].markUseless();
+            needToBack = true;
+          }
+        }
+
+        else if(robotState == leftState){
+          if(rightClear && !maze[row+1][column].getVisited()){
+            rightPossibleFlag = true;
+            rightPossible = maze[row+1][column];
+            possibleCellCount +=1;
+          }  
+          else if(leftClear && !maze[row-1][column].getVisited()){
+            leftPossibleFlag = true;
+            leftPossible = maze[row-1][column];
+            possibleCellCount += 1;
+          }
+          else if(forwardClear && !maze[row][column+columnIncrement].getVisited()){
+            frontPossibleFlag = true;
+            frontPossible = maze[row][column-1];
+            possibleCellCount += 1;
           }  
 
-          if(route == frontPossible){
-            robotState = rightState;
+          if(possibleCellCount>1){
+            if(frontPossibleFlag && leftPossibleFlag){
+              route = differenceForPossible(frontPossible, leftPossible);
+            }
+            else if(frontPossibleFlag && rightPossibleFlag){
+              route = differenceForPossible(frontPossible, rightPossible);
+            }
+            else if(leftPossibleFlag && rightPossibleFlag){
+              route = differenceForPossible(leftPossible, rightPossible);
+            }
+            else{
+              //route = differenceForPossible(frontPossible, leftPossible, rightPossible);
+              robotState = leftState;
+              break;
+            }
+
+            if(route == frontPossible){
+              robotState = leftState;
+            }
+            else if(route == leftPossible){
+              robotState = backwardState;
+              needToLeft = true;
+            }
+            else if(route == rightPossible){
+              robotState = forwardState;
+              needToRight = true;
+            }
+            else{
+              robotState = leftState;
+            }          
           }
-          else if(route == leftPossible){
-            robotState = forwardState;
-            needToLeft = true;
+          else if(possibleCellCount == 1){
+            if(frontPossibleFlag){
+              robotState = leftState;
+            }
+            else if(leftPossibleFlag){
+              robotState = backwardState;
+              needToLeft = true;
+            }
+            else if(rightPossibleFlag){
+              robotState = forwardState;
+              needToRight = true;
+            }
           }
-          else if(route == rightPossible){
-            robotState = backwardState;
-            needToRight = true;
+
+          else if(possibleCellCount == 0){
+            maze[row][column].markUseless();
+            needToBack = true;
+          }
+        }
+
+        else if(robotState == backwardState){
+          if(leftClear && !maze[row][column-columnIncrement].getVisited()){
+            leftPossibleFlag = true;
+            leftPossible = maze[row][column-columnIncrement];
+            possibleCellCount += 1;
+          }
+          else if(forwardClear && !maze[row-1][column].getVisited()){
+            frontPossibleFlag = true;
+            frontPossible = maze[row][column+columnIncrement];
+            possibleCellCount += 1;
+          }
+          else if(rightClear && !maze[row][column+columnIncrement].getVisited()){
+            rightPossibleFlag = true;
+            rightPossible = maze[row+1][column];
+            possibleCellCount +=1; 
+          }
+
+          if(possibleCellCount>1){
+            if(frontPossibleFlag && leftPossibleFlag){
+              route = differenceForPossible(frontPossible, leftPossible);
+            }
+            else if(frontPossibleFlag && rightPossibleFlag){
+              route = differenceForPossible(frontPossible, rightPossible);
+            }
+            else if(leftPossibleFlag && rightPossibleFlag){
+              route = differenceForPossible(leftPossible, rightPossible);
+            }
+            else{
+              //route = differenceForPossible(frontPossible, leftPossible, rightPossible);
+              robotState = backwardState;
+            }
+
+            if(route == frontPossible){
+              robotState = backwardState;
+            }
+            else if(route == leftPossible){
+              robotState = rightState;
+              needToLeft = true;
+            }
+            else if(route == rightPossible){
+              robotState = leftState;
+              needToRight = true;
+            }
+            else{
+              robotState =  backwardState;
+            }          
+          }
+          else if(possibleCellCount == 1){
+            if(frontPossibleFlag){
+              robotState = backwardState;
+            }
+            else if(leftPossibleFlag){
+              robotState = rightState;
+              needToLeft = true;
+            }
+            else if(rightPossibleFlag){
+              robotState = leftState;
+              needToRight = true;
+            }
           }
           else{
-            robotState = rightState;
-          }        
-        }
-
-        else if(possibleCellCount == 1){
-          if(frontPossibleFlag){
-            robotState = rightState;
-          }
-          else if(leftPossibleFlag){
-            robotState = forwardState;
-            needToLeft = true;
-          }
-          else if(rightPossibleFlag){
-            robotState = backwardState;
-            needToRight = true;
+            maze[row][column].markUseless();
+            needToBack = true;
           }
         }
 
-        else if(possibleCellCount == 0){
-          maze[row][column].markUseless();
-          needToBack = true;
-        }
-      }
-
-      else if(robotState == leftState){
-        if(rightClear && !maze[row+1][column].getVisited()){
-          rightPossibleFlag = true;
-          rightPossible = maze[row+1][column];
-          possibleCellCount +=1;
-        }  
-        else if(leftClear && !maze[row-1][column].getVisited()){
-          leftPossibleFlag = true;
-          leftPossible = maze[row-1][column];
-          possibleCellCount += 1;
-        }
-        else if(forwardClear && !maze[row][column+columnIncrement].getVisited()){
-          frontPossibleFlag = true;
-          frontPossible = maze[row][column-1];
-          possibleCellCount += 1;
-        }  
-
-        if(possibleCellCount>1){
-          if(frontPossibleFlag && leftPossibleFlag){
-            route = differenceForPossible(frontPossible, leftPossible);
-          }
-          else if(frontPossibleFlag && rightPossibleFlag){
-            route = differenceForPossible(frontPossible, rightPossible);
-          }
-          else if(leftPossibleFlag && rightPossibleFlag){
-            route = differenceForPossible(leftPossible, rightPossible);
-          }
-          else{
-            //route = differenceForPossible(frontPossible, leftPossible, rightPossible);
-            robotState = leftState;
-            break;
-          }
-
-          if(route == frontPossible){
-            robotState = leftState;
-          }
-          else if(route == leftPossible){
-            robotState = backwardState;
-            needToLeft = true;
-          }
-          else if(route == rightPossible){
-            robotState = forwardState;
-            needToRight = true;
-          }
-          else{
-            robotState = leftState;
-          }          
-        }
-        else if(possibleCellCount == 1){
-          if(frontPossibleFlag){
-            robotState = leftState;
-          }
-          else if(leftPossibleFlag){
-            robotState = backwardState;
-            needToLeft = true;
-          }
-          else if(rightPossibleFlag){
-            robotState = forwardState;
-            needToRight = true;
-          }
-        }
-
-        else if(possibleCellCount == 0){
-          maze[row][column].markUseless();
-          needToBack = true;
-        }
-      }
-
-      else if(robotState == backwardState){
-        if(leftClear && !maze[row][column-columnIncrement].getVisited()){
-          leftPossibleFlag = true;
-          leftPossible = maze[row][column-columnIncrement];
-          possibleCellCount += 1;
-        }
-        else if(forwardClear && !maze[row-1][column].getVisited()){
-          frontPossibleFlag = true;
-          frontPossible = maze[row][column+columnIncrement];
-          possibleCellCount += 1;
-        }
-        else if(rightClear && !maze[row][column+columnIncrement].getVisited()){
-          rightPossibleFlag = true;
-          rightPossible = maze[row+1][column];
-          possibleCellCount +=1; 
-        }
-
-        if(possibleCellCount>1){
-          if(frontPossibleFlag && leftPossibleFlag){
-            route = differenceForPossible(frontPossible, leftPossible);
-          }
-          else if(frontPossibleFlag && rightPossibleFlag){
-            route = differenceForPossible(frontPossible, rightPossible);
-          }
-          else if(leftPossibleFlag && rightPossibleFlag){
-            route = differenceForPossible(leftPossible, rightPossible);
-          }
-          else{
-            //route = differenceForPossible(frontPossible, leftPossible, rightPossible);
-            robotState = backwardState;
-          }
-
-          if(route == frontPossible){
-            robotState = backwardState;
-          }
-          else if(route == leftPossible){
-            robotState = rightState;
-            needToLeft = true;
-          }
-          else if(route == rightPossible){
-            robotState = leftState;
-            needToRight = true;
-          }
-          else{
-            robotState =  backwardState;
-          }          
-        }
-        else if(possibleCellCount == 1){
-          if(frontPossibleFlag){
-            robotState = backwardState;
-          }
-          else if(leftPossibleFlag){
-            robotState = rightState;
-            needToLeft = true;
-          }
-          else if(rightPossibleFlag){
-            robotState = leftState;
-            needToRight = true;
-          }
-        }
-        else{
-          maze[row][column].markUseless();
-          needToBack = true;
-        }
-      }
-      if(currentTime - startTime >= interval){
         if(needToLeft){
+          imu.setTarget(targetAngle+=90);
           motionIndex = turnLeft;
         }
         else if(needToRight){
+          imu.setTarget(targetAngle-=90);
           motionIndex = turnRight;
         }
         else if(needToBack){
@@ -424,30 +440,54 @@ void funcRobotState(){
         possibleCellCount = 0;
         startTime = currentTime;
       }
-      break;
+    break;
 
     case turnRight:
-      Serial.println("Turn Right");
-      motion.right();
-      if(currentTime - startTime >= interval){
-        motionIndex = 1;
-        startTime = currentTime;
+      if(imu.getAngleZ()>targetAngle){
+        motion.right();
       }
+      else{
+        motionIndex = 2;
+      }
+      /*if(currentTime - startTime >= interval){
+        motionIndex = 2;
+        startTime = currentTime;
+      }*/
       break;
 
     case turnLeft:
+      if(imu.getAngleZ()<targetAngle){
+        motion.left();
+      }
+      else{
+        motionIndex = 2;
+      }
+      /*
       Serial.println("Turn Left");
       motion.left();
       if(currentTime - startTime >= interval){
-        motionIndex = 1;
+        motionIndex = 2;
         startTime = currentTime;
       }
+      */
       break;
 
     case goBack:
-      Serial.println("Go Back");
       motion.backward();
       if(currentTime - startTime >= interval){
+        Serial.println("Go Back");
+        if(robotState == forwardState){
+          row--;
+        }
+        else if(robotState == rightState){
+          column += columnIncrement;
+        }
+        else if(robotState == leftState){
+          column -= columnIncrement;
+        }
+        else if(robotState == backwardState){
+          row++;
+        }
         motionIndex = 2;
         startTime = currentTime;
       }
@@ -665,4 +705,15 @@ void funcRight(){
   else{
     rightClear = false;
   }
+}
+
+void funcIMU(){
+  imu.updateAngles();
+}
+
+void driveForward(){
+  imu.setTarget(targetAngle);
+  imu.calculatePID();
+  imu.calculateMotorSpeed(leftMotor.getSpeed(), rightMotor.getSpeed());
+  motion.forward(leftMotor.getSpeed(), rightMotor.getSpeed());
 }

@@ -9,6 +9,9 @@ void funcForward();
 void funcLeft();
 void funcRight();
 
+void funcIMU();
+void driveForward();
+
 void funcRobotState();
 void setMaze(const Cell&);
 
@@ -16,16 +19,17 @@ Cell& differenceForPossible(Cell&, Cell&);
 //Cell& differenceForPossible(Cell&, Cell&, Cell&);
 
 // (Speed, in1, in2, en1_2)
-Motor leftMotor(255, 2, 3, 6);
+Motor leftMotor(220, 2, 3, 6);
 Motor rightMotor(255, 4, 5, 9);
-IMU imu;
 
-Motion motion(leftMotor, rightMotor, imu);
+Motion motion(leftMotor, rightMotor);
 //Motion motion(leftMotor, rightMotor);
 
 FrontSensor frontsensor(30, A1);
 LeftSensor leftsensor(13, A0);
 RightSensor rightsensor(14, A2);
+
+IMU imu; // Create IMU object
 
 int robotState;
 int motionIndex = 0;
@@ -62,6 +66,8 @@ int possibleCellCount = 0;
 int differenceRow;
 int differenceColumn;
 
+double targetAngle = 0.0;
+
 //const PROGMEM int mazeRow = 12;
 //const PROGMEM int mazeColumn = 12;
 
@@ -79,5 +85,5 @@ int columnIncrement;
 const PROGMEM int leftModeColumnIncrement = 1;
 const PROGMEM int rightModeColumnIncrement = -1;
 int targetIndex = 0;
-int interval = 1000;
+int interval = 700;
 #endif

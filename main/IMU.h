@@ -19,6 +19,7 @@ class IMU{
     double integral;
     double derivative;
     int target;
+    double angleZ;
 
   public:
     IMU();
@@ -27,6 +28,7 @@ class IMU{
     void calculateMotorSpeed(int&, int&);
     void setTarget(int);
     void setup();
+    double getAngleZ() const;
 };
 
 #endif
