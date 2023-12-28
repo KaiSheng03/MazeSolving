@@ -3,13 +3,17 @@
 class Motion{
   public:
     Motion(Motor, Motor);
-    void forward(int&, int&);
-    void backward();
-    void right();
+    void forward(int, int);
+    void backward(int, int);
+    void right(int, int);
+    void left(int, int);
     void left();
+    void right();
     void stop();
 
-  private:
+    int leftSpeed;
+    int rightSpeed;
+
     Motor leftMotor;
     Motor rightMotor;
 };

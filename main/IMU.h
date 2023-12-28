@@ -13,22 +13,28 @@ class IMU{
     double Kp; // Proportional constant
     double Ki; // Integral constant
     double Kd; // Derivative constant
+    int motorSpeed;
+    int leftSpeed;
+    int rightSpeed;
 
     // Variables for PID control
     double error, lastError;
     double integral;
     double derivative;
-    int target;
+    double target;
     double angleZ;
 
   public:
     IMU();
     void updateAngles();
     void calculatePID();
-    void calculateMotorSpeed(int&, int&);
+    void calculateMotorSpeed();
     void setTarget(int);
     void setup();
-    double getAngleZ() const;
+    int getLeftSpeed() const;
+    int getRightSpeed() const;
+    double getZ() const;
+    double getTarget() const;
 };
 
 #endif

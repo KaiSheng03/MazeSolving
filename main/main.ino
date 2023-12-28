@@ -12,13 +12,13 @@ TimedAction taskFrontSensor = TimedAction(1, funcFrontSensor);
 TimedAction taskLeftSensor = TimedAction(1, funcLeftSensor);
 TimedAction taskRightSensor = TimedAction(1, funcRightSensor);
 
-//TimedAction taskForward = TimedAction(1, funcForward);
-//TimedAction taskLeft = TimedAction(1, funcLeft);
-//TimedAction taskRight = TimedAction(1, funcRight);
+TimedAction taskForward = TimedAction(1, funcForward);
+TimedAction taskLeft = TimedAction(1, funcLeft);
+TimedAction taskRight = TimedAction(1, funcRight);
 
 TimedAction taskIMU = TimedAction(1, funcIMU);
 
-TimedAction taskRobotState = TimedAction(interval, funcRobotState);
+TimedAction taskRobotState = TimedAction(1, funcRobotState);
 
 void setup() {
   Serial.begin(115200);
@@ -56,9 +56,9 @@ void loop(){
   taskLeftSensor.check();
   taskRightSensor.check();
   taskIMU.check();
-  //taskForward.check();
-  //taskLeft.check();
-  //taskRight.check();
+  taskForward.check();
+  taskLeft.check();
+  taskRight.check();
 }
 
 void funcRobotState(){
@@ -71,6 +71,7 @@ void funcRobotState(){
 
     case 1: // Drive state
       driveForward();
+      //motion.forward(255, 255);
       if(currentTime - startTime >= interval){ // Time reached
         if(robotState == forwardState){
           row++;
@@ -144,9 +145,6 @@ void funcRobotState(){
       break;
 
     case 2: // Buffer stage for condition checking
-      funcForward(); // Check front obstacle
-      funcLeft(); // Check left obstacle
-      funcRight(); // Check right obstacle
       motion.stop(); // Stop the robot for buffer session
       if(currentTime - startTime >= interval){
 
@@ -420,10 +418,12 @@ void funcRobotState(){
         if(needToLeft){
           imu.setTarget(targetAngle+=90);
           motionIndex = turnLeft;
+          Serial.println(imu.getTarget());
         }
         else if(needToRight){
           imu.setTarget(targetAngle-=90);
           motionIndex = turnRight;
+          Serial.println(imu.getTarget());
         }
         else if(needToBack){
           motionIndex = 3;
@@ -443,11 +443,16 @@ void funcRobotState(){
     break;
 
     case turnRight:
-      if(imu.getAngleZ()>targetAngle){
+      if(imu.getZ()>imu.getTarget()){
+        //motion.right(220, 165);
         motion.right();
+        Serial.println("Turn Right");
+        Serial.println(imu.getTarget());
       }
       else{
-        motionIndex = 2;
+        motion.stop();
+        motionIndex = 2000;
+        startTime = currentTime;
       }
       /*if(currentTime - startTime >= interval){
         motionIndex = 2;
@@ -456,14 +461,18 @@ void funcRobotState(){
       break;
 
     case turnLeft:
-      if(imu.getAngleZ()<targetAngle){
+      if(imu.getZ()<imu.getTarget()){
+        //motion.left(165, 220);
         motion.left();
+        Serial.println("Turn Left");
+        Serial.println(imu.getTarget());
       }
       else{
-        motionIndex = 2;
+        motion.stop();
+        startTime = currentTime;
+        motionIndex = 2000;
       }
       /*
-      Serial.println("Turn Left");
       motion.left();
       if(currentTime - startTime >= interval){
         motionIndex = 2;
@@ -472,8 +481,18 @@ void funcRobotState(){
       */
       break;
 
+    case 2000: // Adjustment
+      driveBackward();
+      Serial.println("adjust");
+      if(currentTime - startTime >= 550){
+        startTime = currentTime;
+        motion.stop();
+        motionIndex = 2;
+      }
+      break;
+
     case goBack:
-      motion.backward();
+      driveBackward();
       if(currentTime - startTime >= interval){
         Serial.println("Go Back");
         if(robotState == forwardState){
@@ -564,9 +583,11 @@ void funcRobotState(){
       }
       if(currentTime - startTime >= interval){
         if(needToLeft){
+          imu.setTarget(targetAngle+=90);
           motionIndex = turnLeft;
         }
         else if(needToRight){
+          imu.setTarget(targetAngle-=90);
           motionIndex = turnRight;
         }
         else if(needToBack){
@@ -713,7 +734,15 @@ void funcIMU(){
 
 void driveForward(){
   imu.setTarget(targetAngle);
+  Serial.println(imu.getTarget());
   imu.calculatePID();
-  imu.calculateMotorSpeed(leftMotor.getSpeed(), rightMotor.getSpeed());
-  motion.forward(leftMotor.getSpeed(), rightMotor.getSpeed());
+  imu.calculateMotorSpeed();
+  motion.forward(imu.getLeftSpeed(), imu.getRightSpeed());
+}
+
+void driveBackward(){
+  imu.setTarget(targetAngle);
+  imu.calculatePID();
+  imu.calculateMotorSpeed();
+  motion.backward(imu.getRightSpeed(), imu.getLeftSpeed());
 }

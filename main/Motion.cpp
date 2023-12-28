@@ -3,11 +3,13 @@
 Motion::Motion(Motor lm, Motor rm){
   leftMotor = lm;
   rightMotor = rm;
+  leftSpeed = leftMotor.getSpeed();
+  rightSpeed = rightMotor.getSpeed();
 }
 
-void Motion::forward(int& leftSpeed, int& rightSpeed){
-  analogWrite(leftMotor.getEnable1_2(), leftSpeed);
-  analogWrite(rightMotor.getEnable1_2(), rightSpeed);
+void Motion::forward(int left, int right){
+  analogWrite(leftMotor.getEnable1_2(), left);
+  analogWrite(rightMotor.getEnable1_2(), right);
 
   digitalWrite(leftMotor.getInput1(), HIGH);
   digitalWrite(leftMotor.getInput2(), LOW);
@@ -15,14 +17,14 @@ void Motion::forward(int& leftSpeed, int& rightSpeed){
   digitalWrite(rightMotor.getInput2(), LOW);
 
   Serial.print("Left Motor Speed: ");
-  Serial.println(leftSpeed);
+  Serial.println(left);
   Serial.print("Right Motor Speed: ");
-  Serial.println(rightSpeed);
+  Serial.println(right);
 }
 
-void Motion::backward(){
-  analogWrite(leftMotor.getEnable1_2(), leftMotor.getSpeed());
-  analogWrite(rightMotor.getEnable1_2(), rightMotor.getSpeed());
+void Motion::backward(int left, int right){
+  analogWrite(leftMotor.getEnable1_2(), left);
+  analogWrite(rightMotor.getEnable1_2(), right);
 
   digitalWrite(leftMotor.getInput1(), LOW);
   digitalWrite(leftMotor.getInput2(), HIGH);
@@ -30,9 +32,9 @@ void Motion::backward(){
   digitalWrite(rightMotor.getInput2(), HIGH);
 }
 
-void Motion::right(){
-  analogWrite(leftMotor.getEnable1_2(), leftMotor.getSpeed());
-  analogWrite(rightMotor.getEnable1_2(), rightMotor.getSpeed());
+void Motion::right(int left, int right){
+  analogWrite(leftMotor.getEnable1_2(), left);
+  analogWrite(rightMotor.getEnable1_2(), right);
 
   digitalWrite(leftMotor.getInput1(), HIGH);
   digitalWrite(leftMotor.getInput2(), LOW);
@@ -40,9 +42,29 @@ void Motion::right(){
   digitalWrite(rightMotor.getInput2(), HIGH);
 }
 
+void Motion::right(){
+  analogWrite(leftMotor.getEnable1_2(), 200);
+  analogWrite(rightMotor.getEnable1_2(), 0);
+
+  digitalWrite(leftMotor.getInput1(), HIGH);
+  digitalWrite(leftMotor.getInput2(), LOW);
+  digitalWrite(rightMotor.getInput1(), LOW);
+  digitalWrite(rightMotor.getInput2(), HIGH);
+}
+
+void Motion::left(int left, int right){
+  analogWrite(leftMotor.getEnable1_2(), left);
+  analogWrite(rightMotor.getEnable1_2(), right);
+
+  digitalWrite(leftMotor.getInput1(), LOW);
+  digitalWrite(leftMotor.getInput2(), HIGH);
+  digitalWrite(rightMotor.getInput1(), HIGH);
+  digitalWrite(rightMotor.getInput2(), LOW);
+}
+
 void Motion::left(){
-  analogWrite(leftMotor.getEnable1_2(), leftMotor.getSpeed());
-  analogWrite(rightMotor.getEnable1_2(), rightMotor.getSpeed());
+  analogWrite(leftMotor.getEnable1_2(), 0);
+  analogWrite(rightMotor.getEnable1_2(), 200);
 
   digitalWrite(leftMotor.getInput1(), LOW);
   digitalWrite(leftMotor.getInput2(), HIGH);

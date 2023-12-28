@@ -1,7 +1,7 @@
 #include "Motor.h"
 
 Motor::Motor(){
-  speed = 0;
+  speed = 200;
   input1 = 0;
   input2 = 0;
   enable1_2 = 0;

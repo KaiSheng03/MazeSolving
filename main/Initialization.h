@@ -11,6 +11,7 @@ void funcRight();
 
 void funcIMU();
 void driveForward();
+void driveBackward();
 
 void funcRobotState();
 void setMaze(const Cell&);
@@ -19,8 +20,8 @@ Cell& differenceForPossible(Cell&, Cell&);
 //Cell& differenceForPossible(Cell&, Cell&, Cell&);
 
 // (Speed, in1, in2, en1_2)
-Motor leftMotor(220, 2, 3, 6);
-Motor rightMotor(255, 4, 5, 9);
+Motor leftMotor(230, 2, 3, 6);
+Motor rightMotor(230, 4, 5, 9);
 
 Motion motion(leftMotor, rightMotor);
 //Motion motion(leftMotor, rightMotor);
@@ -85,5 +86,8 @@ int columnIncrement;
 const PROGMEM int leftModeColumnIncrement = 1;
 const PROGMEM int rightModeColumnIncrement = -1;
 int targetIndex = 0;
-int interval = 700;
+// int interval = 1000; // 230 speed
+//int interval = 860;
+//int interval = 750; //HAOLIAODE
+int interval = 750;
 #endif

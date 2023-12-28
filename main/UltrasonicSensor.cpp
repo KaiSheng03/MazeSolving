@@ -33,7 +33,7 @@ double UltrasonicSensor::getDistance()const{
 }
 
 bool UltrasonicSensor::checkObstacle() const{
-  if(distance <= 5){
+  if(distance <= 7.5){
     return true;
   }
   else{

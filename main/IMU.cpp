@@ -1,7 +1,7 @@
 #include "IMU.h"
 
 IMU::IMU():mpu(Wire){
-  Kp = 6.0;
+  Kp = 15.0;
   Ki = 0.01;
   Kd = 2.0;
 
@@ -9,6 +9,9 @@ IMU::IMU():mpu(Wire){
   integral = 0;
   target = 0;
   derivative = 0;
+  motorSpeed = 230;
+  leftSpeed = 200;
+  rightSpeed = 200;
 }
 
 void IMU::setup(){
@@ -28,12 +31,14 @@ void IMU::setup(){
 
 void IMU::updateAngles(){
   mpu.update();
+  
   Serial.print("X : ");
   Serial.print(mpu.getAngleX());
   Serial.print("\tY : ");
   Serial.print(mpu.getAngleY());
   Serial.print("\tZ : ");
   Serial.println(mpu.getAngleZ());
+  
   angleZ = mpu.getAngleZ();
 }
 
@@ -43,9 +48,9 @@ void IMU::calculatePID(){
   derivative = error - lastError;
 }
 
-void IMU::calculateMotorSpeed(int&leftSpeed, int&rightSpeed){
-  leftSpeed = leftSpeed - (Kp * error) + (Ki * integral) + (Kd * derivative);
-  rightSpeed = rightSpeed + (Kp * error) - (Ki * integral) - (Kd * derivative);
+void IMU::calculateMotorSpeed(){
+  leftSpeed = motorSpeed - (Kp * error) + (Ki * integral) + (Kd * derivative);
+  rightSpeed = motorSpeed + (Kp * error) - (Ki * integral) - (Kd * derivative);
   if(leftSpeed > 255){
     leftSpeed = 255;
   }
@@ -60,10 +65,22 @@ void IMU::calculateMotorSpeed(int&leftSpeed, int&rightSpeed){
   }
 }
 
+int IMU::getLeftSpeed() const{
+  return leftSpeed;
+}
+
+int IMU::getRightSpeed() const{
+  return rightSpeed;
+}
+
 void IMU::setTarget(int targetAngle){
   target = targetAngle;
 }
 
-double IMU::getAngleZ() const{
+double IMU::getZ() const{
   return angleZ;
+}
+
+double IMU::getTarget() const{
+  return target;
 }
