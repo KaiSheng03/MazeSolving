@@ -147,7 +147,6 @@ void funcRobotState(){
     case 2: // Buffer stage for condition checking
       motion.stop(); // Stop the robot for buffer session
       if(currentTime - startTime >= interval){
-
         if(robotState == forwardState){
           if(forwardClear && !maze[row+1][column].getVisited()){
             frontPossibleFlag = true;
@@ -165,13 +164,13 @@ void funcRobotState(){
             possibleCellCount +=1;
           }
           if(possibleCellCount>1){
-            if(frontPossibleFlag && leftPossibleFlag){
+            if(frontPossibleFlag && leftPossibleFlag && !rightPossibleFlag){
               route = differenceForPossible(frontPossible, leftPossible);
             }
-            else if(frontPossibleFlag && rightPossibleFlag){
+            else if(frontPossibleFlag && rightPossibleFlag && !leftPossibleFlag){
               route = differenceForPossible(frontPossible, rightPossible);
             }
-            else if(leftPossibleFlag && rightPossibleFlag){
+            else if(leftPossibleFlag && rightPossibleFlag && !frontPossibleFlag){
               route = differenceForPossible(leftPossible, rightPossible);
             }
             else{
@@ -207,7 +206,7 @@ void funcRobotState(){
               needToRight = true;
             }
           }
-          else{
+          else if(possibleCellCount == 0){
             maze[row][column].markUseless();
             needToBack = true;
           }
@@ -299,19 +298,18 @@ void funcRobotState(){
           }  
 
           if(possibleCellCount>1){
-            if(frontPossibleFlag && leftPossibleFlag){
+            if(frontPossibleFlag && leftPossibleFlag && !rightPossibleFlag){
               route = differenceForPossible(frontPossible, leftPossible);
             }
-            else if(frontPossibleFlag && rightPossibleFlag){
+            else if(frontPossibleFlag && rightPossibleFlag && !leftPossibleFlag){
               route = differenceForPossible(frontPossible, rightPossible);
             }
-            else if(leftPossibleFlag && rightPossibleFlag){
+            else if(leftPossibleFlag && rightPossibleFlag && !frontPossibleFlag){
               route = differenceForPossible(leftPossible, rightPossible);
             }
             else{
               //route = differenceForPossible(frontPossible, leftPossible, rightPossible);
               robotState = leftState;
-              break;
             }
 
             if(route == frontPossible){
@@ -367,7 +365,7 @@ void funcRobotState(){
           }
 
           if(possibleCellCount>1){
-            if(frontPossibleFlag && leftPossibleFlag){
+            if(frontPossibleFlag && leftPossibleFlag && !right){
               route = differenceForPossible(frontPossible, leftPossible);
             }
             else if(frontPossibleFlag && rightPossibleFlag){
@@ -409,7 +407,7 @@ void funcRobotState(){
               needToRight = true;
             }
           }
-          else{
+          else if(possibleCellCount == 0){
             maze[row][column].markUseless();
             needToBack = true;
           }
@@ -484,7 +482,7 @@ void funcRobotState(){
     case 2000: // Adjustment
       driveBackward();
       Serial.println("adjust");
-      if(currentTime - startTime >= 550){
+      if(currentTime - startTime >= 700){
         startTime = currentTime;
         motion.stop();
         motionIndex = 2;
@@ -593,6 +591,9 @@ void funcRobotState(){
         else if(needToBack){
           motionIndex = goBack;
         }
+        needToLeft = false;
+        needToRight = false;
+        needToBack = false;
         startTime = currentTime;
       }
       break;

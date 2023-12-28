@@ -89,5 +89,5 @@ int targetIndex = 0;
 // int interval = 1000; // 230 speed
 //int interval = 860;
 //int interval = 750; //HAOLIAODE
-int interval = 750;
+int interval = 830;
 #endif
