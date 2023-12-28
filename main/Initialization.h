@@ -31,6 +31,7 @@ LeftSensor leftsensor(13, A0);
 RightSensor rightsensor(14, A2);
 
 IMU imu; // Create IMU object
+unsigned long startTime = 0;
 
 int robotState;
 int motionIndex = 0;
@@ -88,6 +89,7 @@ const PROGMEM int rightModeColumnIncrement = -1;
 int targetIndex = 0;
 // int interval = 1000; // 230 speed
 //int interval = 860;
-//int interval = 750; //HAOLIAODE
-int interval = 830;
+int interval = 700; //HAOLIAODE
+//int interval = 780;
+int backInterval = 690;
 #endif

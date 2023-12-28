@@ -36,9 +36,9 @@ void setup() {
   //target[3].setCoordinate(6, 7);
   
   target[0].setCoordinate(2, 2);
-  target[1].setCoordinate(3, 2);
-  target[2].setCoordinate(3, 3);
-  target[3].setCoordinate(2, 3);
+  target[1].setCoordinate(2, 3);
+  target[2].setCoordinate(3, 2);
+  target[3].setCoordinate(3, 3);
   
 
   for(int i=0; i<mazeRow; i++){
@@ -48,7 +48,6 @@ void setup() {
   }
 }
 
-unsigned long startTime = 0;
 
 void loop(){ 
   taskRobotState.check();
@@ -146,6 +145,12 @@ void funcRobotState(){
 
     case 2: // Buffer stage for condition checking
       motion.stop(); // Stop the robot for buffer session
+      for(int i=0; i<4; i++){
+        if(maze[row][column] == target[i]){
+          motion.stop();
+          taskRobotState.disable();
+        }
+      }
       if(currentTime - startTime >= interval){
         if(robotState == forwardState){
           if(forwardClear && !maze[row+1][column].getVisited()){
@@ -286,14 +291,14 @@ void funcRobotState(){
             rightPossible = maze[row+1][column];
             possibleCellCount +=1;
           }  
-          else if(leftClear && !maze[row-1][column].getVisited()){
+          if(leftClear && !maze[row-1][column].getVisited()){
             leftPossibleFlag = true;
             leftPossible = maze[row-1][column];
             possibleCellCount += 1;
           }
-          else if(forwardClear && !maze[row][column+columnIncrement].getVisited()){
+          if(forwardClear && !maze[row][column+columnIncrement].getVisited()){
             frontPossibleFlag = true;
-            frontPossible = maze[row][column-1];
+            frontPossible = maze[row][column+columnIncrement];
             possibleCellCount += 1;
           }  
 
@@ -353,25 +358,25 @@ void funcRobotState(){
             leftPossible = maze[row][column-columnIncrement];
             possibleCellCount += 1;
           }
-          else if(forwardClear && !maze[row-1][column].getVisited()){
+          if(forwardClear && !maze[row-1][column].getVisited()){
             frontPossibleFlag = true;
-            frontPossible = maze[row][column+columnIncrement];
+            frontPossible = maze[row-1][column];
             possibleCellCount += 1;
           }
-          else if(rightClear && !maze[row][column+columnIncrement].getVisited()){
+          if(rightClear && !maze[row][column+columnIncrement].getVisited()){
             rightPossibleFlag = true;
-            rightPossible = maze[row+1][column];
+            rightPossible = maze[row][column+columnIncrement];
             possibleCellCount +=1; 
           }
 
           if(possibleCellCount>1){
-            if(frontPossibleFlag && leftPossibleFlag && !right){
+            if(frontPossibleFlag && leftPossibleFlag && !rightPossibleFlag){
               route = differenceForPossible(frontPossible, leftPossible);
             }
-            else if(frontPossibleFlag && rightPossibleFlag){
+            else if(frontPossibleFlag && rightPossibleFlag && !leftPossibleFlag){
               route = differenceForPossible(frontPossible, rightPossible);
             }
-            else if(leftPossibleFlag && rightPossibleFlag){
+            else if(leftPossibleFlag && rightPossibleFlag && !frontPossibleFlag){
               route = differenceForPossible(leftPossible, rightPossible);
             }
             else{
@@ -414,12 +419,12 @@ void funcRobotState(){
         }
 
         if(needToLeft){
-          imu.setTarget(targetAngle+=90);
+          imu.setTarget(targetAngle+=89);
           motionIndex = turnLeft;
           Serial.println(imu.getTarget());
         }
         else if(needToRight){
-          imu.setTarget(targetAngle-=90);
+          imu.setTarget(targetAngle-=89);
           motionIndex = turnRight;
           Serial.println(imu.getTarget());
         }
@@ -482,7 +487,7 @@ void funcRobotState(){
     case 2000: // Adjustment
       driveBackward();
       Serial.println("adjust");
-      if(currentTime - startTime >= 700){
+      if(currentTime - startTime >= 640){
         startTime = currentTime;
         motion.stop();
         motionIndex = 2;
@@ -491,7 +496,7 @@ void funcRobotState(){
 
     case goBack:
       driveBackward();
-      if(currentTime - startTime >= interval){
+      if(currentTime - startTime >= backInterval){
         Serial.println("Go Back");
         if(robotState == forwardState){
           row--;
@@ -518,11 +523,14 @@ void funcRobotState(){
           needToBack = true;
         }
         else if(caller.getRow() == 1){
+          robotState = forwardState;
+        }
+        else if(caller.getColumn() == -columnIncrement){
           //motion.right();
           needToRight = true;
           robotState = rightState;
         }
-        else if(caller.getRow() == -1){
+        else if(caller.getColumn() == columnIncrement){
           //motion.left();
           needToLeft = true;
           robotState = leftState;
@@ -530,9 +538,12 @@ void funcRobotState(){
       }
 
       else if(robotState == rightState){
-        if(caller.getColumn() == -1){
+        if(caller.getColumn() == columnIncrement){
           //motion.backward();
           needToBack = true;
+        }
+        else if(caller.getColumn() == -columnIncrement){
+          robotState = rightState;
         }
         else if(caller.getRow() == 1){
           //motion.left();
@@ -547,9 +558,12 @@ void funcRobotState(){
       }
 
       else if(robotState == leftState){
-        if(caller.getColumn() == 1){
+        if(caller.getColumn() == -columnIncrement){
           //motion.backward();
           needToBack = true;
+        }
+        else if(caller.getColumn() == columnIncrement){
+          robotState = leftState;
         }
         else if(caller.getRow() == 1){
           //motion.right();
@@ -568,12 +582,15 @@ void funcRobotState(){
           //motion.backward();
           needToBack = true;
         }
-        else if(caller.getColumn() == 1){
+        else if(caller.getRow() == -1){
+          robotState = backwardState;
+        }
+        else if(caller.getColumn() == -columnIncrement){
           //motion.left();
           needToLeft = true;
           robotState = rightState;
         }
-        else if(caller.getColumn() == -1){
+        else if(caller.getColumn() == columnIncrement){
           //motion.right();
           needToRight = true;
           robotState = leftState;
@@ -581,15 +598,18 @@ void funcRobotState(){
       }
       if(currentTime - startTime >= interval){
         if(needToLeft){
-          imu.setTarget(targetAngle+=90);
+          imu.setTarget(targetAngle+=89);
           motionIndex = turnLeft;
         }
         else if(needToRight){
-          imu.setTarget(targetAngle-=90);
+          imu.setTarget(targetAngle-=89);
           motionIndex = turnRight;
         }
         else if(needToBack){
           motionIndex = goBack;
+        }
+        else{
+          motionIndex = 1;
         }
         needToLeft = false;
         needToRight = false;

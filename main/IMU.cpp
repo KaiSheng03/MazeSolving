@@ -9,7 +9,7 @@ IMU::IMU():mpu(Wire){
   integral = 0;
   target = 0;
   derivative = 0;
-  motorSpeed = 230;
+  motorSpeed = 250;
   leftSpeed = 200;
   rightSpeed = 200;
 }

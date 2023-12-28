@@ -35,6 +35,7 @@ class IMU{
     int getRightSpeed() const;
     double getZ() const;
     double getTarget() const;
+    
 };
 
 #endif
