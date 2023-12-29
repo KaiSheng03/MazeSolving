@@ -17,14 +17,12 @@ void funcRobotState();
 void setMaze(const Cell&);
 
 Cell& differenceForPossible(Cell&, Cell&);
-//Cell& differenceForPossible(Cell&, Cell&, Cell&);
 
 // (Speed, in1, in2, en1_2)
 Motor leftMotor(230, 2, 3, 6);
 Motor rightMotor(230, 4, 5, 9);
 
 Motion motion(leftMotor, rightMotor);
-//Motion motion(leftMotor, rightMotor);
 
 FrontSensor frontsensor(30, A1);
 LeftSensor leftsensor(13, A0);
@@ -35,9 +33,14 @@ unsigned long startTime = 0;
 
 int robotState;
 int motionIndex = 0;
-const PROGMEM int turnLeft = 200;
-const PROGMEM int goBack = 300;
-const PROGMEM int turnRight = 100;
+const PROGMEM int checkRobotMode = 100;
+const PROGMEM int drive = 200;
+const PROGMEM int checkState = 300;
+const PROGMEM int returnCaller = 400;
+const PROGMEM int turnLeft = 500;
+const PROGMEM int goBack = 600;
+const PROGMEM int adjustmentAfterTurn = 700;
+const PROGMEM int turnRight = 800;
 
 const PROGMEM int forwardState = 1;
 const PROGMEM int rightState = 2;
@@ -87,9 +90,6 @@ int columnIncrement;
 const PROGMEM int leftModeColumnIncrement = 1;
 const PROGMEM int rightModeColumnIncrement = -1;
 int targetIndex = 0;
-// int interval = 1000; // 230 speed
-//int interval = 860;
-int interval = 700; //HAOLIAODE
-//int interval = 780;
+int interval = 700; 
 int backInterval = 690;
 #endif

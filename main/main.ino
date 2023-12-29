@@ -30,6 +30,7 @@ void setup() {
   rightsensor.setup();
   imu.setup();
 
+  //Set the maze target coordinates
   //target[0].setCoordinate(5, 6);
   //target[1].setCoordinate(5, 7);
   //target[2].setCoordinate(6, 6);
@@ -40,7 +41,7 @@ void setup() {
   target[2].setCoordinate(3, 2);
   target[3].setCoordinate(3, 3);
   
-
+  //Set the maze coordinates
   for(int i=0; i<mazeRow; i++){
     for(int j=0; j<mazeColumn; j++){
       maze[i][j].setCoordinate(i, j);
@@ -63,25 +64,24 @@ void loop(){
 void funcRobotState(){
   unsigned long currentTime = millis();
   switch(motionIndex){
-    case 0:
+    case 0: // Initialization 
       robotState = forwardState;
-      motionIndex = 1000;
+      motionIndex = checkRobotMode;
       break;
 
-    case 1: // Drive state
+    case drive: // Drive forward state
       driveForward();
-      //motion.forward(255, 255);
       if(currentTime - startTime >= interval){ // Time reached
-        if(robotState == forwardState){
+        if(robotState == forwardState){ // Robot facing north direction
           row++;
           //Serial.println("Forward State");
-          if(!maze[row][column].getVisited()){
-            maze[row][column].setCaller(row-1, column);
+          if(!maze[row][column].getVisited()){ // Check if current coordinate is a visited cell
+            maze[row][column].setCaller(row-1, column); // Only set the caller when it is not visited
             setMaze(maze[row][column]);
           }
         }
 
-        else if(robotState == rightState){
+        else if(robotState == rightState){ // Robot facing east direction
           column -= columnIncrement;
           if(!maze[row][column].getVisited()){
             maze[row][column].setCaller(row, column+columnIncrement);
@@ -90,7 +90,7 @@ void funcRobotState(){
           }
         }
 
-        else if(robotState == leftState){
+        else if(robotState == leftState){ // Robot facing west direction
           column += columnIncrement;
           if(!maze[row][column].getVisited()){
             maze[row][column].setCaller(row, column-columnIncrement);
@@ -99,7 +99,7 @@ void funcRobotState(){
           }
         }
 
-        else if(robotState == backwardState){
+        else if(robotState == backwardState){ // Robot facing south direction
           row--;
           //Serial.println("Backward State");
           if(!maze[row][column].getVisited()){
@@ -108,42 +108,44 @@ void funcRobotState(){
           }
         }
 
-        if(robotMode == 0 ){
-          motionIndex = 1000;
+        // Check robot mode
+        if(robotMode == 0 ){ // Neither left nor right mode
+          motionIndex = checkRobotMode;
         }
-        else{
-          motionIndex = 2;
+        else{ // Robot is set to either left or right mode
+          motionIndex = checkState;
         }
         startTime = currentTime;
       }
       break;
 
-    case 1000:
+    // Check and set the robot to left or right mode
+    case checkRobotMode:
       motion.stop();
       if(currentTime - startTime >= interval){
-        if(rightClear){
+        if(rightClear){ // If right is cleared, then the robot is set to right mode
           robotMode = rightMode;
           columnIncrement = rightModeColumnIncrement;
           Serial.println("RIGHT MODE");
         }
 
-        else if(leftClear){
+        else if(leftClear){ // If left is cleared, then the robot is set to left mode
           robotMode = leftMode;
           columnIncrement = leftModeColumnIncrement;
           Serial.println("LEFT MODE");
         }
 
-        if(robotMode == 0){
-          motionIndex = 1;
+        if(robotMode == 0){ // Neither left nor right mode
+          motionIndex = drive;
         }
         else{
-          motionIndex = 2;
+          motionIndex = checkState;
         }
         startTime = currentTime;
       }
       break;
 
-    case 2: // Buffer stage for condition checking
+    case checkState: // Buffer stage for condition checking
       motion.stop(); // Stop the robot for buffer session
       for(int i=0; i<4; i++){
         if(maze[row][column] == target[i]){
@@ -152,72 +154,77 @@ void funcRobotState(){
         }
       }
       if(currentTime - startTime >= interval){
-        if(robotState == forwardState){
-          if(forwardClear && !maze[row+1][column].getVisited()){
-            frontPossibleFlag = true;
+        if(robotState == forwardState){ // Robot facing north
+          if(forwardClear && !maze[row+1][column].getVisited()){ // If robot's forward is cleared and the cell infront of it is not visited yet
+            frontPossibleFlag = true; // Set the front possible as true
             frontPossible = maze[row+1][column];
-            possibleCellCount += 1;
+            possibleCellCount += 1; // Increment the number of junction
           }
-          if(leftClear && !maze[row][column+columnIncrement].getVisited()){
-            leftPossibleFlag = true;
-            leftPossible = maze[row][column+columnIncrement];
-            possibleCellCount += 1;
+          if(leftClear && !maze[row][column+columnIncrement].getVisited()){ // If robot's left is cleared and the cell left of it is not visited
+            leftPossibleFlag = true; // Set the left possible as true
+            leftPossible = maze[row][column+columnIncrement]; 
+            possibleCellCount += 1; // Increment the number of junction
           }
-          if(rightClear && !maze[row][column-columnIncrement].getVisited()){
-            rightPossibleFlag = true;
+          if(rightClear && !maze[row][column-columnIncrement].getVisited()){ // If robot's right is cleared and the cell right of it is not visited
+            rightPossibleFlag = true; // Set the right possible as true
             rightPossible = maze[row][column-columnIncrement];
-            possibleCellCount +=1;
+            possibleCellCount +=1; // Increment the number of junction
           }
-          if(possibleCellCount>1){
-            if(frontPossibleFlag && leftPossibleFlag && !rightPossibleFlag){
-              route = differenceForPossible(frontPossible, leftPossible);
+          if(possibleCellCount>1){ // If number of junction is more than 1
+          // If number of junction is 2
+            if(frontPossibleFlag && leftPossibleFlag && !rightPossibleFlag){ // If junction is front and left of the robot
+              route = differenceForPossible(frontPossible, leftPossible); // Calculate which cell is nearest to the target
             }
-            else if(frontPossibleFlag && rightPossibleFlag && !leftPossibleFlag){
-              route = differenceForPossible(frontPossible, rightPossible);
+            else if(frontPossibleFlag && rightPossibleFlag && !leftPossibleFlag){ // If junction is front and right of the robot
+              route = differenceForPossible(frontPossible, rightPossible); // Calculate which cell is nearest to the target
             }
-            else if(leftPossibleFlag && rightPossibleFlag && !frontPossibleFlag){
-              route = differenceForPossible(leftPossible, rightPossible);
+            else if(leftPossibleFlag && rightPossibleFlag && !frontPossibleFlag){ // If junction is left and right of the robot
+              route = differenceForPossible(leftPossible, rightPossible); // Calculate which cell is nearest to the target
             }
-            else{
-              //route = differenceForPossible(frontPossible, leftPossible, rightPossible);
-              robotState = forwardState;
+            else{ // IF THE NUMBER OF JUNCTION IS 3
+              robotState = forwardState; // Remain the direction
             } 
 
-            if(route == frontPossible){
-              robotState = forwardState;
+            // Check which decision cell has been made
+            if(route == frontPossible){ // If front of the robot is the decision
+              robotState = forwardState; // Set the direction of robot towards north
             }
-            else if(route == leftPossible){
-              robotState = leftState;
-              needToLeft = true;
+            else if(route == leftPossible){ // If left of the robot is the decision
+              robotState = leftState; // Set the direction of robot towards west
+              needToLeft = true; // The robot need to turn left
             }
-            else if(route == rightPossible){
-              robotState = rightState;
-              needToRight = true;
+            else if(route == rightPossible){ // If right of the robot is the decision
+              robotState = rightState; // Set the direction of the robot towards east
+              needToRight = true; // The robot need to turn right
             }
             else{
               robotState = forwardState;
             }         
           }
+
+          // If number of junction is 1
           else if(possibleCellCount == 1){
-            if(frontPossibleFlag){
-              robotState = forwardState;
+            if(frontPossibleFlag){ // If front is the only possible cell
+              robotState = forwardState; // Set the robot direction to north
             }
-            else if(leftPossibleFlag){
-              robotState = leftState;
-              needToLeft = true;
+            else if(leftPossibleFlag){ // If left is the only possible cell
+              robotState = leftState; // Set the robot direction to west
+              needToLeft = true; // The robot need to turn left
             }
-            else if(rightPossibleFlag){
-              robotState = rightState;
-              needToRight = true;
+            else if(rightPossibleFlag){ // If right is the only possible cell
+              robotState = rightState; // Set the robot direction to east
+              needToRight = true; // The robot need to turn right
             }
           }
+
+          // If number of junction is 0 (NO WAY TO GO)
           else if(possibleCellCount == 0){
             maze[row][column].markUseless();
-            needToBack = true;
+            needToBack = true; // Need to go back to PREVIOUS CELL (CALLER)
           }
         }
 
-        else if(robotState == rightState){
+        else if(robotState == rightState){ // Robot facing east
           if(leftClear && !maze[row+1][column].getVisited()){
             leftPossibleFlag = true;
             leftPossible = maze[row+1][column];
@@ -245,7 +252,6 @@ void funcRobotState(){
               route = differenceForPossible(leftPossible, rightPossible);
             }
             else{
-              //route = differenceForPossible(frontPossible, leftPossible, rightPossible);
               robotState = rightState;
             }  
 
@@ -313,7 +319,6 @@ void funcRobotState(){
               route = differenceForPossible(leftPossible, rightPossible);
             }
             else{
-              //route = differenceForPossible(frontPossible, leftPossible, rightPossible);
               robotState = leftState;
             }
 
@@ -380,7 +385,6 @@ void funcRobotState(){
               route = differenceForPossible(leftPossible, rightPossible);
             }
             else{
-              //route = differenceForPossible(frontPossible, leftPossible, rightPossible);
               robotState = backwardState;
             }
 
@@ -417,23 +421,26 @@ void funcRobotState(){
             needToBack = true;
           }
         }
-
-        if(needToLeft){
-          imu.setTarget(targetAngle+=89);
-          motionIndex = turnLeft;
+        
+        // CHECK WHERE TO ROBOT NEED TO TURN OR REVERSE BACK, OR JUST KEEP GOING FORWARD
+        if(needToLeft){ // If robot need to turn left
+          imu.setTarget(targetAngle+=89); // Set the target of the imu sensor
+          motionIndex = turnLeft; // Change the motion to turn left
+          Serial.println(imu.getTarget()); 
+        }
+        else if(needToRight){ // If robot need to turn right
+          imu.setTarget(targetAngle-=89); // Set the target of the imu sensor
+          motionIndex = turnRight; // Change the motion to turn right
           Serial.println(imu.getTarget());
         }
-        else if(needToRight){
-          imu.setTarget(targetAngle-=89);
-          motionIndex = turnRight;
-          Serial.println(imu.getTarget());
-        }
-        else if(needToBack){
-          motionIndex = 3;
+        else if(needToBack){ // If robot need to reverse back
+          motionIndex = returnCaller; // Motion index 3 is for the robot to go back to its PREVIOUS CELL (CALLER)
         }
         else{
-          motionIndex = 1;
+          motionIndex = drive;  // Motion index 1 for the robot to keep driving forward
         }
+
+        // RESET
         needToLeft = false;
         needToRight = false;
         needToBack = false;
@@ -445,24 +452,21 @@ void funcRobotState(){
       }
     break;
 
+    // TURN RIGHT
     case turnRight:
       if(imu.getZ()>imu.getTarget()){
-        //motion.right(220, 165);
         motion.right();
         Serial.println("Turn Right");
         Serial.println(imu.getTarget());
       }
       else{
         motion.stop();
-        motionIndex = 2000;
+        motionIndex = adjustmentAfterTurn;
         startTime = currentTime;
       }
-      /*if(currentTime - startTime >= interval){
-        motionIndex = 2;
-        startTime = currentTime;
-      }*/
       break;
 
+    // TURN LEFT
     case turnLeft:
       if(imu.getZ()<imu.getTarget()){
         //motion.left(165, 220);
@@ -473,125 +477,108 @@ void funcRobotState(){
       else{
         motion.stop();
         startTime = currentTime;
-        motionIndex = 2000;
+        motionIndex = adjustmentAfterTurn;
       }
-      /*
-      motion.left();
-      if(currentTime - startTime >= interval){
-        motionIndex = 2;
-        startTime = currentTime;
-      }
-      */
       break;
 
-    case 2000: // Adjustment
+    // ADJUSTMENT AFTER TURNING LEFT OR RIGHT
+    case adjustmentAfterTurn: 
       driveBackward();
       Serial.println("adjust");
       if(currentTime - startTime >= 640){
         startTime = currentTime;
         motion.stop();
-        motionIndex = 2;
+        motionIndex = checkState;
       }
       break;
 
+    // REVERSE THE ROBOT 
     case goBack:
-      driveBackward();
+      driveBackward(); // Drive robot backward
       if(currentTime - startTime >= backInterval){
         Serial.println("Go Back");
-        if(robotState == forwardState){
+        if(robotState == forwardState){ // If robot is facing north
           row--;
         }
-        else if(robotState == rightState){
+        else if(robotState == rightState){ // If robot is facing east
           column += columnIncrement;
         }
-        else if(robotState == leftState){
+        else if(robotState == leftState){ // If robot is facing west
           column -= columnIncrement;
         }
-        else if(robotState == backwardState){
+        else if(robotState == backwardState){ // If robot is facing south
           row++;
         }
-        motionIndex = 2;
+        motionIndex = checkState;
         startTime = currentTime;
       }
       break;
 
-    case 3: // Called when the robot return back to its caller cell
-      Cell caller = maze[row][column].getCaller().operator-(maze[row][column]);
-      if(robotState == forwardState){
-        if(caller.getRow() == -1){
-          //motion.backward();
+    case returnCaller: // Called when the robot return back to its caller cell
+      Cell caller = maze[row][column].getCaller().operator-(maze[row][column]); // CALCULATE WHERE THE DIRECTION OF PREVIOUS CELL (CALLER) IS 
+      if(robotState == forwardState){ // If robot is facing north
+        if(caller.getRow() == -1){ 
           needToBack = true;
         }
         else if(caller.getRow() == 1){
           robotState = forwardState;
         }
-        else if(caller.getColumn() == -columnIncrement){
-          //motion.right();
+        else if(caller.getColumn() == -columnIncrement){ 
           needToRight = true;
           robotState = rightState;
         }
         else if(caller.getColumn() == columnIncrement){
-          //motion.left();
           needToLeft = true;
           robotState = leftState;
         }
       }
 
-      else if(robotState == rightState){
+      else if(robotState == rightState){ // If robot is facing east
         if(caller.getColumn() == columnIncrement){
-          //motion.backward();
           needToBack = true;
         }
         else if(caller.getColumn() == -columnIncrement){
           robotState = rightState;
         }
         else if(caller.getRow() == 1){
-          //motion.left();
           needToLeft = true;
           robotState = forwardState;
         }
         else if(caller.getRow() == -1){
-          //motion.right();
           needToRight = true;
           robotState = backwardState;
         }
       }
 
-      else if(robotState == leftState){
+      else if(robotState == leftState){ // If robot is facing west
         if(caller.getColumn() == -columnIncrement){
-          //motion.backward();
           needToBack = true;
         }
         else if(caller.getColumn() == columnIncrement){
           robotState = leftState;
         }
         else if(caller.getRow() == 1){
-          //motion.right();
           needToRight = true;
           robotState = forwardState;
         }
         else if(caller.getRow() == -1){
-          //motion.left();
           needToLeft = true;
           robotState = backwardState;
         }
       }
 
-      else if(robotState == backwardState){
+      else if(robotState == backwardState){ // If robot is facing south
         if(caller.getRow() == 1){
-          //motion.backward();
           needToBack = true;
         }
         else if(caller.getRow() == -1){
           robotState = backwardState;
         }
         else if(caller.getColumn() == -columnIncrement){
-          //motion.left();
           needToLeft = true;
           robotState = rightState;
         }
         else if(caller.getColumn() == columnIncrement){
-          //motion.right();
           needToRight = true;
           robotState = leftState;
         }
@@ -609,7 +596,7 @@ void funcRobotState(){
           motionIndex = goBack;
         }
         else{
-          motionIndex = 1;
+          motionIndex = drive;
         }
         needToLeft = false;
         needToRight = false;
@@ -645,68 +632,8 @@ Cell& differenceForPossible(Cell& inputCell, Cell& inputCell2){
     }
   }
   return inputCell;
-  /*
-  int differenceRow1 = abs(target[targetIndex].getRow() - inputCell.getRow());
-  int differenceRow2 = abs(target[targetIndex].getRow() - inputCell2.getRow());
-
-  int differenceColumn1 = abs(target[targetIndex].getColumn() - inputCell.getColumn());
-  int differenceColumn2 = abs(target[targetIndex].getColumn() - inputCell2.getColumn());
-
-  int difference1 = differenceRow1 + differenceColumn1;
-  int difference2 = differenceRow2 + differenceColumn2;
-
-  if(targetIndex < 3){
-    if(difference1 < difference2){
-      return inputCell;
-    }
-    else if(difference2 < difference1){
-      return inputCell2;
-    }
-    else if(difference1 == difference2){
-      targetIndex++;
-      return differenceForPossible(inputCell, inputCell2);
-    }
-  }
-  return inputCell;
-  */
 }
 
-/*
-Cell& differenceForPossible(Cell& inputCell, Cell& inputCell2, Cell& inputCell3){
-  bool routeFound = false;
-  int targetIndex = 0;
-  int smallest;
-  int differenceRow1 = abs(target[targetIndex].getRow() - inputCell.getRow());
-  int differenceRow2 = abs(target[targetIndex].getRow() - inputCell2.getRow());
-  int differenceRow3 = abs(target[targetIndex].getRow() - inputCell3.getRow());
-
-  int differenceColumn1 = abs(target[targetIndex].getColumn() - inputCell.getColumn());
-  int differenceColumn2 = abs(target[targetIndex].getColumn() - inputCell2.getColumn());
-  int differenceColumn3 = abs(target[targetIndex].getColumn() - inputCell3.getColumn());
-
-  int difference1 = differenceRow1 + differenceColumn1;
-  int difference2 = differenceRow2 + differenceColumn2;
-  int difference3 = differenceRow3 + differenceColumn3;
-
-  smallest = difference1;
-  if(difference2 < smallest){
-    smallest = difference2;
-  }
-  if(difference3 < smallest){
-    smallest = difference3;
-  }
-  
-  if(smallest == difference1){
-    return inputCell;
-  }
-  else if(smallest == difference2){
-    return inputCell2;
-  }
-  else if(smallest == difference3){
-    return inputCell3;
-  }
-}
-*/
 void funcFrontSensor(){
   frontsensor.readDuration();
   frontsensor.calculateDistance();
