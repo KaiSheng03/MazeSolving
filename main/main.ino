@@ -124,8 +124,6 @@ void funcRobotState(){
       motion.stop();
       if(currentTime - startTime >= interval){
         if(rightClear){ // If right is cleared, then the robot is set to right mode
-          robotMode = rightMode;
-          columnIncrement = rightModeColumnIncrement;
           Serial.println("RIGHT MODE");
         }
 
