@@ -36,10 +36,10 @@ void setup() {
   //target[2].setCoordinate(6, 6);
   //target[3].setCoordinate(6, 7);
   
-  target[0].setCoordinate(2, 2);
-  target[1].setCoordinate(2, 3);
-  target[2].setCoordinate(3, 2);
-  target[3].setCoordinate(3, 3);
+  target[0].setCoordinate(5, 5);
+  target[1].setCoordinate(5, 6);
+  target[2].setCoordinate(6, 5);
+  target[3].setCoordinate(6, 6);
   
   //Set the maze coordinates
   for(int i=0; i<mazeRow; i++){
@@ -122,8 +122,10 @@ void funcRobotState(){
     // Check and set the robot to left or right mode
     case checkRobotMode:
       motion.stop();
-      if(currentTime - startTime >= interval){
+      if(currentTime - startTime >= 200){
         if(rightClear){ // If right is cleared, then the robot is set to right mode
+          robotMode = rightMode;
+          columnIncrement = rightModeColumnIncrement;
           Serial.println("RIGHT MODE");
         }
 
@@ -422,12 +424,12 @@ void funcRobotState(){
         
         // CHECK WHERE TO ROBOT NEED TO TURN OR REVERSE BACK, OR JUST KEEP GOING FORWARD
         if(needToLeft){ // If robot need to turn left
-          imu.setTarget(targetAngle+=89); // Set the target of the imu sensor
+          imu.setTarget(targetAngle+=89.7); // Set the target of the imu sensor
           motionIndex = turnLeft; // Change the motion to turn left
           Serial.println(imu.getTarget()); 
         }
         else if(needToRight){ // If robot need to turn right
-          imu.setTarget(targetAngle-=89); // Set the target of the imu sensor
+          imu.setTarget(targetAngle-=89.7); // Set the target of the imu sensor
           motionIndex = turnRight; // Change the motion to turn right
           Serial.println(imu.getTarget());
         }
@@ -483,7 +485,7 @@ void funcRobotState(){
     case adjustmentAfterTurn: 
       driveBackward();
       Serial.println("adjust");
-      if(currentTime - startTime >= 640){
+      if(currentTime - startTime >= 590){
         startTime = currentTime;
         motion.stop();
         motionIndex = checkState;
@@ -583,11 +585,11 @@ void funcRobotState(){
       }
       if(currentTime - startTime >= interval){
         if(needToLeft){
-          imu.setTarget(targetAngle+=89);
+          imu.setTarget(targetAngle+=89.7);
           motionIndex = turnLeft;
         }
         else if(needToRight){
-          imu.setTarget(targetAngle-=89);
+          imu.setTarget(targetAngle-=89.7);
           motionIndex = turnRight;
         }
         else if(needToBack){

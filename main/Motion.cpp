@@ -33,7 +33,7 @@ void Motion::backward(int left, int right){
 }
 
 void Motion::right(){
-  analogWrite(leftMotor.getEnable1_2(), 160);
+  analogWrite(leftMotor.getEnable1_2(), 170);
   analogWrite(rightMotor.getEnable1_2(), 0);
 
   digitalWrite(leftMotor.getInput1(), HIGH);
@@ -44,7 +44,7 @@ void Motion::right(){
 
 void Motion::left(){
   analogWrite(leftMotor.getEnable1_2(), 0);
-  analogWrite(rightMotor.getEnable1_2(), 160);
+  analogWrite(rightMotor.getEnable1_2(), 170);
 
   digitalWrite(leftMotor.getInput1(), LOW);
   digitalWrite(leftMotor.getInput2(), HIGH);
@@ -53,8 +53,8 @@ void Motion::left(){
 }
 
 void Motion::stop(){
-  analogWrite(leftMotor.getEnable1_2(), leftMotor.getSpeed());
-  analogWrite(rightMotor.getEnable1_2(), rightMotor.getSpeed());
+  analogWrite(leftMotor.getEnable1_2(), 255);
+  analogWrite(rightMotor.getEnable1_2(), 255);
 
   digitalWrite(leftMotor.getInput1(), LOW);
   digitalWrite(leftMotor.getInput2(), LOW);

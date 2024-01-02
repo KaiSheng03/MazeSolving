@@ -28,7 +28,7 @@ FrontSensor frontsensor(30, A1);
 LeftSensor leftsensor(13, A0);
 RightSensor rightsensor(14, A2);
 
-IMU imu; // Create IMU object
+IMU imu;  // Create IMU object
 unsigned long startTime = 0;
 
 int robotState;
@@ -73,11 +73,11 @@ int differenceColumn;
 
 double targetAngle = 0.0;
 
-//const PROGMEM int mazeRow = 12;
-//const PROGMEM int mazeColumn = 12;
+const PROGMEM int mazeRow = 12;
+const PROGMEM int mazeColumn = 12;
 
-const PROGMEM int mazeRow = 6;
-const PROGMEM int mazeColumn = 6;
+//const PROGMEM int mazeRow = 6;
+//const PROGMEM int mazeColumn = 6;
 
 Cell maze[mazeRow][mazeColumn];
 Cell target[4];
@@ -90,6 +90,6 @@ int columnIncrement;
 const PROGMEM int leftModeColumnIncrement = 1;
 const PROGMEM int rightModeColumnIncrement = -1;
 int targetIndex = 0;
-int interval = 700; 
-int backInterval = 690;
+int interval = 775;
+int backInterval = 775;
 #endif
